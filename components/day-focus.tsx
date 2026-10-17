@@ -6,12 +6,11 @@ import dagre from "dagre";
 import { useKaizenStore } from "@/lib/store";
 import { splitTask, type TaskNode } from "@/lib/graph";
 
-const NODE_WIDTH = 260;
-const NODE_HEIGHT = 145;
+const NODE_WIDTH = 560;
+const NODE_HEIGHT = 112;
 
 type TaskData = {
   task: TaskNode;
-  locked: boolean;
   onComplete: (id: string) => void;
   onSkip: (id: string) => void;
   onSplit: (id: string) => void;
@@ -19,19 +18,19 @@ type TaskData = {
 };
 
 function TaskCard({ data }: NodeProps<Node<TaskData>>) {
-  const { task, locked, onComplete, onSkip, onSplit, splitting } = data;
-  const container = task.type === "container";
-  return <div className={`task-node ${task.status === "completed" ? "is-completed" : ""} ${task.status === "skipped" ? "is-skipped" : ""} ${locked ? "is-locked" : ""} ${container ? "is-container" : ""}`}>
+  const { task, onComplete, onSkip, onSplit, splitting } = data;
+  const [menuOpen, setMenuOpen] = useState(false);
+  return <div className={`task-node ${task.status === "completed" ? "is-completed" : ""} ${task.status === "skipped" ? "is-skipped" : ""}`}>
     <Handle type="target" position={Position.Top} />
-    <div className="task-node-top"><span className="task-kicker">{container ? "РАЗБИТАЯ ЗАДАЧА" : "МИКРОШАГ"}</span><span className="task-xp">{container ? "—" : `${task.xp_weight} XP`}</span></div>
-    <div className="task-title">{task.title}</div>
-    <div className="task-duration">◷ &nbsp;{task.duration_minutes} мин</div>
-    <div className="task-actions">
-      {container ? <span className="task-container-note">Заверши подшаги, чтобы продолжить</span> : <>
-        <button className="task-check" disabled={locked || task.status !== "pending"} onClick={() => onComplete(task.id)}>{task.status === "completed" ? "✓ Выполнено" : task.status === "skipped" ? "Пропущено" : "○ Выполнено"}</button>
-        {task.status === "pending" && <button className="task-skip" disabled={locked} onClick={() => onSkip(task.id)} title="Пропустить без XP">Пропустить</button>}
-        <button className="task-split" disabled={locked || task.status !== "pending" || task.xp_weight < 2 || splitting} onClick={() => onSplit(task.id)} title={task.xp_weight < 2 ? "Недостаточно XP для дробления без нулевых долей" : "Раздробить задачу на микрошаги"}>{splitting ? <span className="split-spinner"/> : "↳"}</button>
-      </>}
+    <div className="task-progress-fill" aria-hidden="true" />
+    <div className="task-card-content">
+      <div className="task-copy"><div className="task-title">{task.title}</div><div className="task-duration">◷ &nbsp;{task.duration_minutes} минут</div></div>
+      <div className="task-controls nodrag nopan">
+        <div className="task-menu-wrap"><button className="task-menu-button nodrag nopan" aria-label="Настройки задачи" aria-expanded={menuOpen} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); setMenuOpen((open) => !open); }}>···</button>
+          {menuOpen && <div className="task-menu nodrag nopan"><button className="nodrag nopan" disabled={task.status !== "pending" || splitting} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); setMenuOpen(false); onSplit(task.id); }}>{splitting ? <><span className="split-spinner"/> Дробим…</> : "Раздробить мельче"}</button><button className="nodrag nopan" disabled={task.status !== "pending"} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); setMenuOpen(false); onSkip(task.id); }}>Пропустить</button></div>}
+        </div>
+        <button className={`task-check nodrag nopan ${task.status === "completed" ? "checked" : ""}`} aria-label={task.status === "completed" ? "Задача выполнена" : "Отметить выполненной"} disabled={task.status !== "pending"} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); onComplete(task.id); }}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7" /></svg></button>
+      </div>
     </div>
     <Handle type="source" position={Position.Bottom} />
   </div>;
@@ -46,22 +45,27 @@ const nodeTypes = { taskCard: TaskCard };
 const edgeTypes = { growth: GrowingEdge };
 
 function arrangeGraph(graph: TaskNode[], onComplete: (id: string) => void, onSkip: (id: string) => void, onSplit: (id: string) => void, splittingId: string | null) {
+  const available = graph.filter((task) => task.type === "task" && task.status === "pending" && task.dependencies.every((id) => graph.find((dependency) => dependency.id === id)?.status !== "pending"));
+  const current = available[0];
+  const currentIndex = current ? graph.findIndex((task) => task.id === current.id) : -1;
+  const previous = current ? [...graph.slice(0, currentIndex)].reverse().find((task) => task.type === "task" && task.status !== "pending") : [...graph].reverse().find((task) => task.type === "task");
+  const visible = current ? [ ...(previous ? [previous] : []), current ] : previous ? [previous] : [];
+  const visibleIds = new Set(visible.map((task) => task.id));
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
   dagreGraph.setGraph({ rankdir: "TB", nodesep: 48, ranksep: 74, marginx: 24, marginy: 30 });
-  graph.forEach((task) => dagreGraph.setNode(task.id, { width: NODE_WIDTH, height: NODE_HEIGHT }));
-  graph.forEach((task) => task.dependencies.forEach((dependency) => dagreGraph.setEdge(dependency, task.id)));
+  visible.forEach((task) => dagreGraph.setNode(task.id, { width: NODE_WIDTH, height: NODE_HEIGHT }));
+  visible.forEach((task) => task.dependencies.forEach((dependency) => { if (visibleIds.has(dependency)) dagreGraph.setEdge(dependency, task.id); }));
+  if (current && previous && !current.dependencies.some((dependency) => dependency === previous.id)) dagreGraph.setEdge(previous.id, current.id);
   dagre.layout(dagreGraph);
-  const nodeById = new Map(graph.map((task) => [task.id, task]));
-  const nodes: Node<TaskData>[] = graph.map((task) => {
+  const nodes: Node<TaskData>[] = visible.map((task) => {
     const point = dagreGraph.node(task.id);
-    const locked = task.dependencies.some((id) => nodeById.get(id)?.status === "pending");
-    return { id: task.id, type: "taskCard", position: { x: point.x - NODE_WIDTH / 2, y: point.y - NODE_HEIGHT / 2 }, data: { task, locked, onComplete, onSkip, onSplit, splitting: splittingId === task.id }, draggable: false, selectable: false };
+    return { id: task.id, type: "taskCard", position: { x: point.x - NODE_WIDTH / 2, y: point.y - NODE_HEIGHT / 2 }, data: { task, onComplete, onSkip, onSplit, splitting: splittingId === task.id }, draggable: false, selectable: false };
   });
-  const edges: Edge<{ active: boolean }>[] = graph.flatMap((task) => task.dependencies.map((dependency) => ({
-    id: `${dependency}-${task.id}`, source: dependency, target: task.id, type: "growth", markerEnd: { type: MarkerType.ArrowClosed, color: nodeById.get(dependency)?.status === "pending" ? "#c6ccbd" : "#829873" },
-    data: { active: nodeById.get(dependency)?.status !== "pending" },
-  })));
+  const edges: Edge<{ active: boolean }>[] = current && previous ? [{
+    id: `${previous.id}-${current.id}`, source: previous.id, target: current.id, type: "growth",
+    markerEnd: { type: MarkerType.ArrowClosed, color: "#829873" }, data: { active: previous.status !== "pending" },
+  }] : [];
   return { nodes, edges };
 }
 

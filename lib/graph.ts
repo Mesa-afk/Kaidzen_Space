@@ -117,6 +117,9 @@ export function splitTask(
     dependencies: [...new Set([...parent.dependencies, ...child.dependencies])],
   }));
   const childIds = normalizedChildren.map((child) => child.id);
+  normalizedChildren.forEach((child, index) => {
+    if (index > 0) child.dependencies = [...new Set([...child.dependencies, childIds[index - 1]])];
+  });
   const candidate = [
     ...graph.map((node) => node.id === parentId
       ? { ...node, type: "container" as const, xp_weight: 0, status: "pending" as const }

@@ -53,7 +53,7 @@ describe("dependency graph", () => {
     const following = candidate.find((node) => node.id === "following")!;
     expect(parent).toMatchObject({ type: "container", xp_weight: 0 });
     expect(left).toMatchObject({ parent_id: "parent", xp_weight: 5, dependencies: ["prerequisite"] });
-    expect(right).toMatchObject({ parent_id: "parent", xp_weight: 5, dependencies: ["prerequisite"] });
+    expect(right).toMatchObject({ parent_id: "parent", xp_weight: 5, dependencies: ["prerequisite", "uuid-1"] });
     expect(following.dependencies).toEqual(["uuid-1", "uuid-2"]);
     expect(graph.find((node) => node.id === "parent")?.type).toBe("task");
   });
