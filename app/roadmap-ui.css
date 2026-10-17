@@ -5,6 +5,11 @@
 .catalog-actions{display:flex;align-items:center;gap:8px}
 .button-create{border:1px solid #dfe4d9;background:#f4f6f1;border-radius:6px;padding:10px 12px;color:#5c704e;font-size:10px;transition:background .2s}
 .button-create:hover{background:#eaf0e5}
+.button-remove{border:1px solid #eadbd7;background:#fffaf9;color:#a46b62;border-radius:6px;padding:10px 12px;font-size:10px;white-space:nowrap;transition:background .2s}
+.button-remove:hover{background:#f9eeeb}
+.take-link:disabled{color:#89927f;cursor:default}
+.remove-card{color:#9b6e66}
+.remove-card:hover{color:#874c43}
 .create-roadmap{margin-top:17px;padding:17px 18px;background:#f8f9f6;border:1px solid #ecefe8;border-radius:8px;animation:rise .25s both}
 .create-intro{display:flex;gap:10px;align-items:center;margin-bottom:13px}
 .create-spark{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;background:#ebf0e6;color:#718562}
