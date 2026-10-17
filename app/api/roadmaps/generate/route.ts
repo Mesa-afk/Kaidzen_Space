@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     });
     return Response.json(roadmap, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
-    if (error instanceof LlmConfigurationError) return Response.json({ error: "AI generation is not configured. Set OPENAI_API_KEY on the server." }, { status: 503 });
+    if (error instanceof LlmConfigurationError) return Response.json({ error: "AI generation is not configured. Set LLM_API_KEY on the server." }, { status: 503 });
     console.error("Roadmap generation failed:", error);
     return Response.json({ error: error instanceof LlmRequestError ? "Could not generate a valid roadmap after three attempts" : "Roadmap validation failed after three attempts" }, { status: 502 });
   }

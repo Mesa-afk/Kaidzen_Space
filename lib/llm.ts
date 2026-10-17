@@ -2,15 +2,17 @@ import { findCycle, GraphInvariantError, replaceTemporaryIds, type TaskNode } fr
 
 const REQUEST_TIMEOUT_MS = 15_000;
 const MAX_ATTEMPTS = 3;
-const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
+const DEFAULT_BASE_URL = "https://api.daluobo.cc.cd/v1";
+const DEFAULT_MODEL = "deepseek-v4.1-flash";
 
 export class LlmConfigurationError extends Error {}
 export class LlmRequestError extends Error {}
 
 export function getLlmConfig() {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) throw new LlmConfigurationError("OPENAI_API_KEY is not configured on the server");
-  return { apiKey, model: process.env.OPENAI_MODEL || "gpt-4o-mini" };
+  const apiKey = process.env.LLM_API_KEY;
+  if (!apiKey) throw new LlmConfigurationError("LLM_API_KEY is not configured on the server");
+  const baseUrl = (process.env.LLM_BASE_URL || DEFAULT_BASE_URL).replace(/\/+$/, "");
+  return { apiKey, model: process.env.LLM_MODEL || DEFAULT_MODEL, url: `${baseUrl}/chat/completions` };
 }
 
 export async function generateValidated<T>(options: {
@@ -18,13 +20,13 @@ export async function generateValidated<T>(options: {
   userPrompt: string;
   parse: (value: unknown) => T;
 }): Promise<T> {
-  const { apiKey, model } = getLlmConfig();
+  const { apiKey, model, url } = getLlmConfig();
   let lastError: unknown;
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
-      const response = await fetch(OPENAI_URL, {
+      const response = await fetch(url, {
         method: "POST",
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
         signal: controller.signal,

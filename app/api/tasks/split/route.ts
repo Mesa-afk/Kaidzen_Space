@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     const tasks = candidate.filter((node) => node.parent_id === task.id);
     return Response.json({ tasks }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
-    if (error instanceof LlmConfigurationError) return Response.json({ error: "AI generation is not configured. Set OPENAI_API_KEY on the server." }, { status: 503 });
+    if (error instanceof LlmConfigurationError) return Response.json({ error: "AI generation is not configured. Set LLM_API_KEY on the server." }, { status: 503 });
     console.error("Task splitting failed:", error);
     return Response.json({ error: error instanceof LlmRequestError ? "Could not split task after three attempts" : error instanceof Error ? error.message : "Task splitting failed" }, { status: 502 });
   }
