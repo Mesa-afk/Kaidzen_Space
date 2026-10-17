@@ -4,7 +4,9 @@ import { useCallback, useMemo, useState } from "react";
 import { ReactFlow, Background, Controls, Handle, MarkerType, Position, getBezierPath, type Edge, type EdgeProps, type Node, type NodeProps } from "@xyflow/react";
 import dagre from "dagre";
 import { useKaizenStore } from "@/lib/store";
-import { splitTask, type TaskNode } from "@/lib/graph";
+import { completedLeafXp, completesDayAt100Xp, splitTask, type TaskNode } from "@/lib/graph";
+import { EnergyOrb } from "@/components/energy-orb";
+import { playRewardSound } from "@/lib/reward-sound";
 
 const NODE_WIDTH = 560;
 const NODE_HEIGHT = 112;
@@ -14,11 +16,12 @@ type TaskData = {
   onComplete: (id: string) => void;
   onSkip: (id: string) => void;
   onSplit: (id: string) => void;
+  willReachReward: (id: string) => boolean;
   splitting: boolean;
 };
 
 function TaskCard({ data }: NodeProps<Node<TaskData>>) {
-  const { task, onComplete, onSkip, onSplit, splitting } = data;
+  const { task, onComplete, onSkip, onSplit, willReachReward, splitting } = data;
   const [menuOpen, setMenuOpen] = useState(false);
   return <div className={`task-node ${task.status === "completed" ? "is-completed" : ""} ${task.status === "skipped" ? "is-skipped" : ""}`}>
     <Handle type="target" position={Position.Top} />
@@ -29,7 +32,7 @@ function TaskCard({ data }: NodeProps<Node<TaskData>>) {
         <div className="task-menu-wrap"><button className="task-menu-button nodrag nopan" aria-label="Настройки задачи" aria-expanded={menuOpen} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); setMenuOpen((open) => !open); }}>···</button>
           {menuOpen && <div className="task-menu nodrag nopan"><button className="nodrag nopan" disabled={task.status !== "pending" || splitting} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); setMenuOpen(false); onSplit(task.id); }}>{splitting ? <><span className="split-spinner"/> Дробим…</> : "Раздробить мельче"}</button><button className="nodrag nopan" disabled={task.status !== "pending"} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); setMenuOpen(false); onSkip(task.id); }}>Пропустить</button></div>}
         </div>
-        <button className={`task-check nodrag nopan ${task.status === "completed" ? "checked" : ""}`} aria-label={task.status === "completed" ? "Задача выполнена" : "Отметить выполненной"} disabled={task.status !== "pending"} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); onComplete(task.id); }}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7" /></svg></button>
+        <button className={`task-check nodrag nopan ${task.status === "completed" ? "checked" : ""}`} aria-label={task.status === "completed" ? "Задача выполнена" : "Отметить выполненной"} disabled={task.status !== "pending"} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); const earnsDayReward = willReachReward(task.id); onComplete(task.id); if (earnsDayReward) playRewardSound(); }}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7" /></svg></button>
       </div>
     </div>
     <Handle type="source" position={Position.Bottom} />
@@ -44,7 +47,7 @@ function GrowingEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, t
 const nodeTypes = { taskCard: TaskCard };
 const edgeTypes = { growth: GrowingEdge };
 
-function arrangeGraph(graph: TaskNode[], onComplete: (id: string) => void, onSkip: (id: string) => void, onSplit: (id: string) => void, splittingId: string | null) {
+function arrangeGraph(graph: TaskNode[], onComplete: (id: string) => void, onSkip: (id: string) => void, onSplit: (id: string) => void, willReachReward: (id: string) => boolean, splittingId: string | null) {
   const available = graph.filter((task) => task.type === "task" && task.status === "pending" && task.dependencies.every((id) => graph.find((dependency) => dependency.id === id)?.status !== "pending"));
   const current = available[0];
   const currentIndex = current ? graph.findIndex((task) => task.id === current.id) : -1;
@@ -60,7 +63,7 @@ function arrangeGraph(graph: TaskNode[], onComplete: (id: string) => void, onSki
   dagre.layout(dagreGraph);
   const nodes: Node<TaskData>[] = visible.map((task) => {
     const point = dagreGraph.node(task.id);
-    return { id: task.id, type: "taskCard", position: { x: point.x - NODE_WIDTH / 2, y: point.y - NODE_HEIGHT / 2 }, data: { task, onComplete, onSkip, onSplit, splitting: splittingId === task.id }, draggable: false, selectable: false };
+    return { id: task.id, type: "taskCard", position: { x: point.x - NODE_WIDTH / 2, y: point.y - NODE_HEIGHT / 2 }, data: { task, onComplete, onSkip, onSplit, willReachReward, splitting: splittingId === task.id }, draggable: false, selectable: false };
   });
   const edges: Edge<{ active: boolean }>[] = current && previous ? [{
     id: `${previous.id}-${current.id}`, source: previous.id, target: current.id, type: "growth",
@@ -76,6 +79,9 @@ export function DayFocus({ roadmapTitle, dayNumber, storageKey, onBack }: { road
   const [splitError, setSplitError] = useState<string | null>(null);
   const onComplete = useCallback((id: string) => updateFocusGraph(storageKey, graph.map((task) => task.id === id ? { ...task, status: "completed" } : task)), [graph, storageKey, updateFocusGraph]);
   const onSkip = useCallback((id: string) => updateFocusGraph(storageKey, graph.map((task) => task.id === id ? { ...task, status: "skipped" } : task)), [graph, storageKey, updateFocusGraph]);
+  const willReachReward = useCallback((id: string) => {
+    return completesDayAt100Xp(graph, id);
+  }, [graph]);
   const onSplit = useCallback(async (id: string) => {
     const parent = graph.find((task) => task.id === id);
     if (!parent || parent.type !== "task" || parent.status !== "pending") return;
@@ -96,12 +102,12 @@ export function DayFocus({ roadmapTitle, dayNumber, storageKey, onBack }: { road
       setSplittingId(null);
     }
   }, [graph, storageKey, updateFocusGraph]);
-  const { nodes, edges } = useMemo(() => arrangeGraph(graph, onComplete, onSkip, onSplit, splittingId), [graph, onComplete, onSkip, onSplit, splittingId]);
-  const xp = graph.filter((task) => task.type === "task" && task.status === "completed").reduce((sum, task) => sum + task.xp_weight, 0);
+  const { nodes, edges } = useMemo(() => arrangeGraph(graph, onComplete, onSkip, onSplit, willReachReward, splittingId), [graph, onComplete, onSkip, onSplit, willReachReward, splittingId]);
+  const xp = completedLeafXp(graph);
   const pending = graph.filter((task) => task.type === "task" && task.status === "pending").length;
   return <section className="focus-page">
     <button className="back-button" onClick={onBack}>← Назад к дням</button>
-    <header className="focus-header"><div><span className="eyebrow">{roadmapTitle.toUpperCase()}</span><h1>Фокус дня <em>·</em> {dayNumber}</h1><p>Только сегодняшний шаг. Остальное может подождать.</p></div><div className="focus-progress"><strong>{xp}<small> XP</small></strong><span>{pending === 0 ? "День завершён" : `Осталось ${pending} шагов`}</span></div></header>
+    <header className="focus-header"><div><span className="eyebrow">{roadmapTitle.toUpperCase()}</span><h1>Фокус дня <em>·</em> {dayNumber}</h1><p>Только сегодняшний шаг. Остальное может подождать.</p></div><div className="focus-progress"><EnergyOrb xp={xp}/><strong>{xp}<small> XP</small></strong><span>{pending === 0 ? "День завершён" : `Осталось ${pending} шагов`}</span></div></header>
     <div className="focus-hint"><span>✳</span> Закрывай шаг за шагом — следующие задачи откроются сами.</div>
     {splitError && <div className="split-error" role="alert">{splitError}<button onClick={() => setSplitError(null)} aria-label="Закрыть">×</button></div>}
     <div className="flow-stage"><ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} edgeTypes={edgeTypes} fitView fitViewOptions={{ padding: 0.22, maxZoom: 1 }} minZoom={0.35} maxZoom={1.2} nodesDraggable={false} nodesConnectable={false} elementsSelectable={false} proOptions={{ hideAttribution: true }}><Background color="#e7e9e2" gap={22} size={1} /><Controls showInteractive={false} /></ReactFlow></div>

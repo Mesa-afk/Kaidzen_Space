@@ -17,6 +17,15 @@ export class GraphInvariantError extends Error {
   }
 }
 
+export function completedLeafXp(graph: TaskNode[]) {
+  return graph.filter((node) => node.type === "task" && node.status === "completed").reduce((sum, node) => sum + node.xp_weight, 0);
+}
+
+export function completesDayAt100Xp(graph: TaskNode[], taskId: string) {
+  const task = graph.find((node) => node.id === taskId);
+  return Boolean(task && task.type === "task" && task.status === "pending" && completedLeafXp(graph) + task.xp_weight === 100);
+}
+
 export function distributeXp(parentWeight: number, childCount: number): number[] {
   if (!Number.isInteger(parentWeight) || parentWeight < 0) {
     throw new GraphInvariantError("XP weight must be a non-negative integer");

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { distributeXp, findCycle, GraphInvariantError, replaceTemporaryIds, splitTask, type TaskNode } from "./graph";
+import { completedLeafXp, completesDayAt100Xp, distributeXp, findCycle, GraphInvariantError, replaceTemporaryIds, splitTask, type TaskNode } from "./graph";
 
 const task = (id: string, dependencies: string[] = [], xp_weight = 10): TaskNode => ({
   id, parent_id: null, type: "task", status: "pending", title: id,
@@ -16,6 +16,14 @@ describe("XP distribution", () => {
   it("refuses to split when any child would get zero XP", () => {
     expect(() => distributeXp(2, 3)).toThrow(GraphInvariantError);
     expect(() => distributeXp(2, 3)).toThrow("each child must receive at least 1 XP");
+  });
+
+  it("pays the day reward only for an explicit pending-task completion that reaches exactly 100 XP", () => {
+    const graph = [{ ...task("done", [], 50), status: "completed" as const }, task("last", [], 50)];
+    expect(completedLeafXp(graph)).toBe(50);
+    expect(completesDayAt100Xp(graph, "last")).toBe(true);
+    expect(completesDayAt100Xp([{ ...graph[0], status: "skipped" }, graph[1]], "last")).toBe(false);
+    expect(completesDayAt100Xp([{ ...graph[0], status: "completed" }, { ...graph[1], status: "completed" }], "last")).toBe(false);
   });
 });
 
