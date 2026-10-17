@@ -1,6 +1,7 @@
 export type RoadmapDay = { dayNumber: number; title: string; tasks: string[] };
 export type Roadmap = {
   id: string;
+  sourceId?: string;
   title: string;
   emoji: string;
   description: string;
@@ -11,6 +12,22 @@ export type Roadmap = {
   author: string;
   color: string;
 };
+
+/** Older saved copies used `<source-id>-<timestamp>` as their ID. */
+export function roadmapSourceId(roadmap: Roadmap) {
+  return roadmap.sourceId ?? roadmap.id.replace(/-\d{13}$/, "");
+}
+
+export function dedupeRoadmaps(roadmaps: Roadmap[]) {
+  const seen = new Set<string>();
+  return roadmaps.reduce<Roadmap[]>((result, roadmap) => {
+    const sourceId = roadmapSourceId(roadmap);
+    if (seen.has(sourceId)) return result;
+    seen.add(sourceId);
+    result.push({ ...roadmap, sourceId });
+    return result;
+  }, []);
+}
 
 export const demoRoadmaps: Roadmap[] = [
   { id: "draw", title: "Основы рисования", emoji: "🎨", description: "От первых линий до простых скетчей — без спешки и давления.", level: "Для начинающих", likes: 284, rating: 4.9, author: "Маша Л.🤍", color: "peach", days: [{ dayNumber: 1, title: "Знакомство с линией", tasks: ["Подготовить бумагу и карандаш", "Нарисовать 10 прямых и волнистых линий"] }, { dayNumber: 2, title: "Простые формы", tasks: ["Нарисовать круги и квадраты", "Собрать из форм маленький натюрморт"] }, { dayNumber: 3, title: "Первый скетч", tasks: ["Выбрать предмет рядом", "Набросать его простыми формами"] }] },

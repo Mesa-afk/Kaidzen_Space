@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "./roadmap-ui.css";
 import "@xyflow/react/dist/style.css";
 
 const geistSans = Geist({
