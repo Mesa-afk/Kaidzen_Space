@@ -1,7 +1,7 @@
 import { roadmapResponseSchema, type RoadmapResponse } from "@/lib/api-schemas";
 import { createSystemPrompt, generateValidated, LlmConfigurationError, LlmRequestError } from "@/lib/llm";
 import { replaceTemporaryIds } from "@/lib/graph";
-import { validateServerGraph } from "@/lib/server/validation/graph";
+import { assertXpInvariant, validateServerGraph } from "@/lib/server/validation/graph";
 import { ApiError } from "@/lib/server/validation/errors";
 
 function normalizeRoadmap(input: RoadmapResponse): RoadmapResponse {
@@ -12,13 +12,15 @@ function normalizeRoadmap(input: RoadmapResponse): RoadmapResponse {
   const normalized = replaceTemporaryIds(incoming, []);
   validateServerGraph(normalized, { requireDayXp: false });
   const byOldIndex = new Map(normalized.map((task, index) => [incoming[index], task]));
-  return {
+  const result = {
     ...input,
     days: input.days.map((day) => ({
       ...day,
       tasks: day.tasks.map((task) => byOldIndex.get(task)!),
     })),
   };
+  result.days.forEach((day) => assertXpInvariant(day.tasks));
+  return result;
 }
 
 export async function generateRoadmap(input: { topic: string; level: string; requestId?: string; signal?: AbortSignal }) {

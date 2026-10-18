@@ -38,3 +38,13 @@ export function validateServerGraph(graph: TaskNode[], options: { requireDayXp?:
   }
   return graph;
 }
+
+export function assertXpInvariant(graph: TaskNode[]) {
+  const leaves = graph.filter((node) => node.type === "task");
+  if (leaves.some((node) => !Number.isSafeInteger(node.xp_weight) || node.xp_weight < 1)) {
+    throw new ApiError("XP_INVARIANT_FAILED", "Every leaf task must have a positive integer XP weight", 422);
+  }
+  if (leaves.reduce((sum, node) => sum + node.xp_weight, 0) !== 100) {
+    throw new ApiError("XP_INVARIANT_FAILED", "Leaf task XP must total exactly 100", 422);
+  }
+}

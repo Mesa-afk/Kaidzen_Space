@@ -18,6 +18,9 @@ export const roadmapDaySchema = z.object({
   const leaves = day.tasks.filter((task) => task.type === "task");
   const xp = leaves.reduce((sum, task) => sum + task.xp_weight, 0);
   if (xp !== 100) context.addIssue({ code: "custom", message: `Day ${day.day_number} leaf-task xp_weight sum must equal 100 (received ${xp})`, path: ["tasks"] });
+  for (const task of leaves) {
+    if (task.xp_weight < 1) context.addIssue({ code: "custom", message: "Leaf tasks must receive at least 1 XP", path: ["tasks"] });
+  }
   const ids = new Set(day.tasks.map((task) => task.id));
   if (ids.size !== day.tasks.length) context.addIssue({ code: "custom", message: "Task IDs must be unique within a day", path: ["tasks"] });
   for (const task of day.tasks) {
