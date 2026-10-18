@@ -10,20 +10,7 @@ import { CardVisual } from "@/components/card-visual";
 type View = "repository" | "mine";
 type SortMode = "for-you" | "popular" | "recent";
 
-/**
- * Map roadmap categories to visual themes
- */
-function getCategoryFromRoadmap(roadmap: Roadmap): "art" | "language" | "music" | "yoga" | "cooking" | "code" | "writing" | "default" {
-  const title = roadmap.title.toLowerCase();
-  if (title.includes("акварель") || title.includes("рисован") || title.includes("art")) return "art";
-  if (title.includes("английск") || title.includes("язык") || title.includes("language")) return "language";
-  if (title.includes("музык") || title.includes("music") || title.includes("гитар")) return "music";
-  if (title.includes("йога") || title.includes("yoga")) return "yoga";
-  if (title.includes("готов") || title.includes("cooking") || title.includes("рецепт")) return "cooking";
-  if (title.includes("код") || title.includes("code") || title.includes("програм")) return "code";
-  if (title.includes("писат") || title.includes("writing") || title.includes("текст")) return "writing";
-  return "default";
-}
+// No longer need category mapping - using emoji from roadmap directly
 
 export default function OpusHomePage() {
   const [view, setView] = useState<View>("repository");
@@ -200,7 +187,6 @@ export default function OpusHomePage() {
           ) : (
             <div className="opus-cards-grid">
               {visible.map((roadmap) => {
-                const category = getCategoryFromRoadmap(roadmap);
                 const isLiked = likedRoadmapIds.includes(roadmap.id);
                 
                 return (
@@ -222,9 +208,9 @@ export default function OpusHomePage() {
                       </div>
                     )}
                     
-                    {/* Thematic visual */}
+                    {/* Standardized visual with emoji */}
                     <div className="opus-card-visual">
-                      <CardVisual category={category} themeMode={themeMode} />
+                      <CardVisual emoji={roadmap.emoji} color={roadmap.color} themeMode={themeMode} />
                     </div>
                     
                     {/* Content */}

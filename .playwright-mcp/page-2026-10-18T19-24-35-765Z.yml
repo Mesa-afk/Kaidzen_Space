@@ -1,0 +1,5 @@
+- generic [active] [ref=f27e1]:
+  - main [ref=f27e4]:
+    - paragraph [ref=f27e6]: Загрузка...
+  - button "Open Next.js Dev Tools" [ref=f27e12] [cursor=pointer]
+  - alert [ref=f27e16]
