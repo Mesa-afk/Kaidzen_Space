@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "./diamond-design.css";
+import "./diamond-components.css";
+import "./diamond-focus.css";
+import "./diamond-animations.css";
+import "./diamond-ui-extras.css";
 import "./roadmap-ui.css";
 import "./responsive-layout.css";
 import "@xyflow/react/dist/style.css";
+import { ThemeInitializer } from "@/components/theme-initializer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,7 +32,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="ru"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <ThemeInitializer />
+        {children}
+      </body>
     </html>
   );
 }

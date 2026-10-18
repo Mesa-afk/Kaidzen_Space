@@ -1,0 +1,404 @@
+/* ============================================
+   DIAMOND REDESIGN - DESIGN SYSTEM
+   ============================================ */
+
+:root {
+  /* Light Theme Colors */
+  --bg: #fdfdf9;
+  --surface: #ffffff;
+  --surface-hover: #fafbf8;
+  --border: #e8ebe3;
+  --border-strong: #d4d8cc;
+  
+  --text: #2a2d26;
+  --text-muted: #73766d;
+  --text-subtle: #9a9d93;
+  
+  --sage: #7d9170;
+  --sage-dark: #5c6e50;
+  --sage-light: #a8c095;
+  --sage-bg: #f1f5ed;
+  
+  --warm-yellow: #f0c94e;
+  --warm-yellow-light: #fff4c2;
+  --cream: #fef9f0;
+  
+  --completed: #b7d4a5;
+  --completed-bg: #eef6e8;
+  
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(42, 50, 38, 0.06);
+  --shadow-md: 0 4px 16px rgba(42, 50, 38, 0.08);
+  --shadow-lg: 0 8px 32px rgba(42, 50, 38, 0.12);
+  
+  /* Typography */
+  --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: Georgia, "Times New Roman", serif;
+  
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] {
+  --bg: #1a1d18;
+  --surface: #242721;
+  --surface-hover: #2c2f28;
+  --border: #35382f;
+  --border-strong: #484b40;
+  
+  --text: #e4e6df;
+  --text-muted: #9ca098;
+  --text-subtle: #6e716a;
+  
+  --sage: #92a880;
+  --sage-dark: #7d9170;
+  --sage-light: #b0c79e;
+  --sage-bg: #262a23;
+  
+  --warm-yellow: #f5d665;
+  --warm-yellow-light: #fff9d5;
+  --cream: #34362f;
+  
+  --completed: #8ba677;
+  --completed-bg: #2a2f26;
+  
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+/* Focus mode overrides - deep matte black */
+.focus-mode {
+  --bg: #0f110d;
+  --surface: #1a1c18;
+  --surface-hover: #22241f;
+  --border: #2d2f28;
+  --border-strong: #3a3d35;
+  
+  --text: #d5d7ce;
+  --text-muted: #85877d;
+  --text-subtle: #5a5c54;
+  
+  --sage: #7a9068;
+  --sage-dark: #5f7350;
+  --sage-light: #96a885;
+  --sage-bg: #1c1e1a;
+  
+  --warm-yellow: #f7d95f;
+  --warm-yellow-light: #fffadb;
+  --cream: #26271f;
+  
+  --completed: #7a9068;
+  --completed-bg: #1f221c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color var(--transition-slow), color var(--transition-slow);
+}
+
+button, a {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+}
+
+/* ============================================
+   THEME TOGGLE
+   ============================================ */
+
+.theme-toggle {
+  position: relative;
+  width: 48px;
+  height: 26px;
+  border-radius: 13px;
+  background: var(--border);
+  border: 1px solid var(--border-strong);
+  cursor: pointer;
+  transition: background var(--transition-base);
+}
+
+.theme-toggle:hover {
+  background: var(--border-strong);
+}
+
+.theme-toggle-track {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.theme-toggle-thumb {
+  position: absolute;
+  left: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+}
+
+.theme-toggle-thumb.dark {
+  left: calc(100% - 22px);
+}
+
+/* ============================================
+   LAYOUT
+   ============================================ */
+
+.shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  max-width: 1800px;
+  margin: 0 auto;
+}
+
+.sidebar {
+  padding: var(--space-xl) var(--space-lg);
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: background var(--transition-slow), border-color var(--transition-slow);
+}
+
+.main-area {
+  padding: var(--space-xl) var(--space-2xl);
+  min-height: 100vh;
+}
+
+/* ============================================
+   SIDEBAR
+   ============================================ */
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  margin-bottom: var(--space-2xl);
+  transition: color var(--transition-base);
+}
+
+.brand-mark {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--sage);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.brand-light {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.side-label {
+  font-size: 10px;
+  letter-spacing: 1.2px;
+  font-weight: 700;
+  color: var(--text-subtle);
+  margin-bottom: var(--space-md);
+  text-transform: uppercase;
+}
+
+.nav-link {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  margin: 4px 0;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.nav-link > span:first-child {
+  font-size: 18px;
+  color: var(--text-subtle);
+  transition: color var(--transition-fast);
+}
+
+.nav-link:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.nav-link.active {
+  background: var(--sage-bg);
+  color: var(--sage-dark);
+  font-weight: 600;
+}
+
+.nav-link.active > span:first-child {
+  color: var(--sage);
+}
+
+.nav-count {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-subtle);
+  font-weight: 600;
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border);
+}
+
+.sidebar-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+.sound-toggle {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  transition: all var(--transition-fast);
+}
+
+.sound-toggle:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+
+.sound-toggle.muted {
+  opacity: 0.5;
+}
+
+.quote-card {
+  padding: var(--space-md);
+  background: var(--cream);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-lg);
+  border: 1px solid var(--border);
+}
+
+.quote-card > span {
+  color: var(--sage);
+  font-size: 18px;
+}
+
+.quote-card p {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text);
+  margin: var(--space-sm) 0;
+}
+
+.quote-card small {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: var(--space-md) 0;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  background: var(--sage-bg);
+  color: var(--sage-dark);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+  /* Target for XP particles */
+  position: relative;
+  z-index: 10;
+}
+
+.profile strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.profile small {
+  display: block;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.profile-dots {
+  margin-left: auto;
+  color: var(--text-subtle);
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* Continue in next file... */

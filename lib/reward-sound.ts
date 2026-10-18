@@ -1,5 +1,7 @@
 /** Call only from an explicit user click handler; never from hydration or an effect. */
-export function playRewardSound() {
+export function playRewardSound(soundEnabled: boolean = true) {
+  if (!soundEnabled) return;
+  
   try {
     const AudioContextConstructor = window.AudioContext;
     if (!AudioContextConstructor) return;
