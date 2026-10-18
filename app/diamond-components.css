@@ -263,7 +263,7 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  overflow: visible;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   transition: all var(--transition-base);
