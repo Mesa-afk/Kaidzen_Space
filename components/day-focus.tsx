@@ -10,8 +10,9 @@ import { playRewardSound } from "@/lib/reward-sound";
 import { mockSplitTask } from "@/lib/mock-split";
 import { isBackendEnabled, splitTaskApi } from "@/lib/api-client";
 
-const NODE_STEP_X = 100;
-const NODE_STEP_Y = 225;
+const NODE_STEP_X = 250;
+const NODE_STEP_Y = 235;
+const SPLIT_STEP_Y = 180;
 
 type TaskData = {
   task: TaskNode;
@@ -168,14 +169,30 @@ function arrangeGraph(
   const history = graph.filter((task) =>
     (task.type === "task" && task.status !== "pending") || task.type === "container"
   );
-  const visible = current && !history.some((task) => task.id === current.id) ? [...history, current] : history;
+  const topLevelHistory = history.filter((task) => task.parent_id === null);
+  const splitParent = current?.parent_id
+    ? graph.find((task) => task.id === current.parent_id && task.type === "container")
+    : undefined;
+  const splitChildren = splitParent
+    ? graph.filter((task) => task.type === "task" && task.parent_id === splitParent.id)
+    : [];
+  const visible = splitParent
+    ? [...history, ...splitChildren.filter((task) => !history.some((item) => item.id === task.id))]
+    : current && !history.some((task) => task.id === current.id) ? [...history, current] : history;
   const visibleIds = new Set(visible.map((task) => task.id));
   
   const nodes: Node<TaskData>[] = visible.map((task) => {
+    const parent = task.parent_id ? graph.find((item) => item.id === task.parent_id) : undefined;
+    const parentIndex = parent ? topLevelHistory.findIndex((item) => item.id === parent.id) : -1;
+    const routeIndex = topLevelHistory.findIndex((item) => item.id === task.id);
+    const childIndex = parent ? splitChildren.findIndex((item) => item.id === task.id) : -1;
+    const position = parent && parentIndex >= 0
+      ? { x: 80 + parentIndex * NODE_STEP_X + NODE_STEP_X, y: 48 + parentIndex * NODE_STEP_Y + (childIndex + 1) * SPLIT_STEP_Y }
+      : { x: 80 + (routeIndex >= 0 ? routeIndex : topLevelHistory.length) * NODE_STEP_X, y: 48 + (routeIndex >= 0 ? routeIndex : topLevelHistory.length) * NODE_STEP_Y };
     return {
       id: task.id,
       type: "taskCard",
-      position: { x: 80 + visible.indexOf(task) * NODE_STEP_X, y: 48 + visible.indexOf(task) * NODE_STEP_Y },
+      position,
       className: task.id === current?.id ? "task-node-current" : undefined,
       data: {
         task,
@@ -203,28 +220,42 @@ function arrangeGraph(
       markerEnd: { type: MarkerType.ArrowClosed, color: "#7a9068" },
       data: { active: justCompletedId === dependency },
     })));
+  if (splitParent && splitChildren[0] && visibleIds.has(splitChildren[0].id)) {
+    edges.push({
+      id: `${splitParent.id}-${splitChildren[0].id}-parent`,
+      source: splitParent.id,
+      target: splitChildren[0].id,
+      type: "growth",
+      markerEnd: { type: MarkerType.ArrowClosed, color: "#7a9068" },
+      data: { active: false },
+    });
+  }
   
   return { nodes, edges };
 }
 
-function FocusCamera({ currentNodeId }: { currentNodeId?: string }) {
-  const { fitView } = useReactFlow();
-  const previousNodeRef = useRef<string | undefined>(undefined);
+function FocusCamera({ nodeIds }: { nodeIds: string[] }) {
+  const { fitView, getNodes } = useReactFlow();
+  const previousNodeRef = useRef<string>("");
+  const cameraKey = nodeIds.join("|");
 
   useEffect(() => {
-    if (!currentNodeId || previousNodeRef.current === currentNodeId) return;
-    previousNodeRef.current = currentNodeId;
+    if (!cameraKey || previousNodeRef.current === cameraKey) return;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const frame = requestAnimationFrame(() => {
+    const timer = window.setTimeout(() => {
+      const selected = getNodes().filter((node) => nodeIds.includes(node.id));
+      if (!selected.length) return;
+      previousNodeRef.current = cameraKey;
       void fitView({
-        nodes: [{ id: currentNodeId }],
-        padding: 0.35,
-        maxZoom: 0.9,
+        nodes: selected,
+        padding: selected.length > 1 ? 0.12 : 0.35,
+        minZoom: selected.length > 1 ? 0.42 : 0.7,
+        maxZoom: selected.length > 1 ? 0.54 : 0.9,
         duration: reducedMotion ? 0 : 550,
       });
-    });
-    return () => cancelAnimationFrame(frame);
-  }, [currentNodeId, fitView]);
+    }, 100);
+    return () => window.clearTimeout(timer);
+  }, [cameraKey, fitView, getNodes, nodeIds]);
 
   return null;
 }
@@ -301,6 +332,10 @@ export function DayFocus({ roadmapTitle, dayNumber, storageKey, onBack }: { road
   const xp = completedLeafXp(graph);
   const pending = graph.filter((task) => task.type === "task" && task.status === "pending").length;
   const graphMissing = graph.length === 0;
+  const currentNode = nodes.find((node) => node.data.current);
+  const cameraNodeIds = currentNode?.data.task.parent_id
+    ? nodes.filter((node) => node.data.task.parent_id === currentNode.data.task.parent_id || node.id === currentNode.data.task.parent_id).map((node) => node.id)
+    : currentNode ? [currentNode.id] : [];
   
   return (
     <section className="focus-page">
@@ -358,7 +393,7 @@ export function DayFocus({ roadmapTitle, dayNumber, storageKey, onBack }: { road
             elementsSelectable={false}
             proOptions={{ hideAttribution: true }}
         >
-          <FocusCamera currentNodeId={nodes.find((node) => node.data.current)?.id} />
+          <FocusCamera nodeIds={cameraNodeIds} />
             <Background color="#dfe6d8" gap={22} size={1} />
             <Controls showInteractive={false} />
           </ReactFlow>
