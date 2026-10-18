@@ -9,6 +9,7 @@ import { EnergyOrb } from "@/components/energy-orb";
 import { XPParticles } from "@/components/xp-particles";
 import { playRewardSound } from "@/lib/reward-sound";
 import { mockSplitTask } from "@/lib/mock-split";
+import { isBackendEnabled, splitTaskApi } from "@/lib/api-client";
 
 const NODE_WIDTH = 560;
 const NODE_HEIGHT = 140;
@@ -260,11 +261,16 @@ export function DayFocus({ roadmapTitle, dayNumber, storageKey, onBack }: { road
     setSplitError(null);
     
     try {
-      // Use mock split instead of API for demo
-      // In production, this would call: fetch("/api/tasks/split", ...)
-      await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network delay
-      const mockTasks = mockSplitTask(parent);
-      const candidate = splitTask(graph, id, mockTasks);
+      const serverTasks = isBackendEnabled()
+        ? (await splitTaskApi(parent, graph)).tasks
+        : await new Promise<ReturnType<typeof mockSplitTask>>((resolve) => setTimeout(() => resolve(mockSplitTask(parent)), 800));
+      let serverIdIndex = 0;
+      const candidate = splitTask(
+        graph,
+        id,
+        serverTasks,
+        isBackendEnabled() ? () => serverTasks[serverIdIndex++].id : undefined,
+      );
       updateFocusGraph(storageKey, candidate);
     } catch (error) {
       setSplitError(error instanceof Error ? error.message : "Не удалось раздробить задачу. Попробуй ещё раз.");

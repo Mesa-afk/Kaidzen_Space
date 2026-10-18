@@ -11,6 +11,7 @@ import { SoundToggle } from "@/components/sound-toggle";
 import { DayMetroLine } from "@/components/day-metro-line";
 import { distributeXp, type TaskNode } from "@/lib/graph";
 import { mockGenerateRoadmap } from "@/lib/mock-generate";
+import { generateRoadmapApi, isBackendEnabled } from "@/lib/api-client";
 import { calculateCompletedDays, findCurrentDay, calculateDayProgress } from "@/lib/progress";
 
 type View = "repository" | "mine";
@@ -98,11 +99,9 @@ export default function Home() {
     setCreateError("");
     
     try {
-      // Use mock generation instead of API for demo
-      // In production, this would call: fetch("/api/roadmaps/generate", ...)
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
-      
-      const generated = mockGenerateRoadmap(topic, level);
+      const generated = isBackendEnabled()
+        ? await generateRoadmapApi(topic, level)
+        : await new Promise<ReturnType<typeof mockGenerateRoadmap>>((resolve) => setTimeout(() => resolve(mockGenerateRoadmap(topic, level)), 1500));
       const id = crypto.randomUUID();
       
       const roadmap: Roadmap = {
