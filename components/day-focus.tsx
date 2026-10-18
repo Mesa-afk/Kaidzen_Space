@@ -80,7 +80,7 @@ function TaskCard({ data }: NodeProps<Node<TaskData>>) {
               <div className="task-menu nodrag nopan">
                 <button
                   className="nodrag nopan"
-                  disabled={task.status !== "pending" || splitting}
+                  disabled={task.type !== "task" || task.status !== "pending" || splitting}
                   onPointerDown={(event) => event.stopPropagation()}
                   onClick={(event) => {
                     event.stopPropagation();
@@ -99,7 +99,7 @@ function TaskCard({ data }: NodeProps<Node<TaskData>>) {
                 
                 <button
                   className="nodrag nopan"
-                  disabled={task.status !== "pending"}
+                  disabled={task.type !== "task" || task.status !== "pending"}
                   onPointerDown={(event) => event.stopPropagation()}
                   onClick={(event) => {
                     event.stopPropagation();
@@ -116,7 +116,7 @@ function TaskCard({ data }: NodeProps<Node<TaskData>>) {
           <button
             className={`task-check nodrag nopan ${task.status === "completed" ? "checked" : ""}`}
             aria-label={task.status === "completed" ? "Задача выполнена" : "Отметить выполненной"}
-            disabled={task.status !== "pending" || completing}
+            disabled={task.type !== "task" || task.status !== "pending" || completing}
             onPointerDown={(event) => event.stopPropagation()}
             onClick={handleComplete}
           >
@@ -319,9 +319,6 @@ export function DayFocus({ roadmapTitle, dayNumber, storageKey, onBack }: { road
         
         <div className="focus-progress">
           <EnergyOrb xp={xp} />
-          <strong>
-            {xp}<small> XP</small>
-          </strong>
           <span>
             {pending === 0 ? "День завершён" : `Осталось ${pending} шагов`}
           </span>
