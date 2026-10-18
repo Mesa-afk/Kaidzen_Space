@@ -262,15 +262,15 @@
 }
 
 .xp-text {
-  font-size: 20px;
+  font-size: 32px;
   font-weight: 700;
   color: var(--warm-yellow);
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
   animation: xp-text-rise 1.2s cubic-bezier(0.18, 0.78, 0.2, 1) forwards;
 }
 
 .xp-text-simple {
-  font-size: 18px;
+  font-size: 28px;
   font-weight: 700;
   color: var(--warm-yellow);
   animation: simple-fade 0.8s ease forwards;
@@ -283,15 +283,15 @@
   }
   20% {
     opacity: 1;
-    transform: translateY(-20px) scale(1.2);
+    transform: translateY(-30px) scale(1.4);
   }
   50% {
     opacity: 1;
-    transform: translateY(-40px) scale(1);
+    transform: translateY(-60px) scale(1.2);
   }
   100% {
     opacity: 0;
-    transform: translateY(-80px) scale(0.8);
+    transform: translateY(-100px) scale(0.9);
   }
 }
 
@@ -305,11 +305,11 @@
 }
 
 .xp-particle {
-  width: 6px;
-  height: 6px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: radial-gradient(circle, var(--warm-yellow) 0%, var(--warm-yellow-light) 100%);
-  box-shadow: 0 0 8px var(--warm-yellow);
+  box-shadow: 0 0 12px var(--warm-yellow);
   animation: particle-fly 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 

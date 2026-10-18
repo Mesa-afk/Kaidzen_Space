@@ -46,7 +46,7 @@ export function DayMetroLine({ days, completedDays = [], currentDay, dayProgress
               key={day.dayNumber}
               className="metro-station"
               style={{
-                top: `${(index / (days.length - 1)) * 100}%`,
+                top: `${(index / Math.max(1, days.length - 1)) * 100}%`,
                 left: offsetLeft,
               }}
             >

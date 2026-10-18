@@ -288,7 +288,7 @@ export function DayFocus({ roadmapTitle, dayNumber, storageKey, onBack }: { road
   const pending = graph.filter((task) => task.type === "task" && task.status === "pending").length;
   
   return (
-    <section className="focus-page dark-mode">
+    <section className="focus-page">
       <button className="back-button" onClick={onBack}>
         ← Назад к дням
       </button>
@@ -341,7 +341,7 @@ export function DayFocus({ roadmapTitle, dayNumber, storageKey, onBack }: { road
           elementsSelectable={false}
           proOptions={{ hideAttribution: true }}
         >
-          <Background color="#2d2f28" gap={22} size={1} />
+          <Background color="#dfe6d8" gap={22} size={1} />
           <Controls showInteractive={false} />
         </ReactFlow>
       </div>

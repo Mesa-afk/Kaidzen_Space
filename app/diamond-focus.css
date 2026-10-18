@@ -4,7 +4,7 @@
 
 .metro-container {
   position: relative;
-  min-height: 600px;
+  min-height: 800px;
   padding: var(--space-xl) 0;
 }
 
@@ -33,7 +33,7 @@
 .metro-stations {
   position: relative;
   z-index: 1;
-  min-height: 600px;
+  min-height: 750px;
 }
 
 .metro-station {
@@ -42,6 +42,55 @@
   align-items: center;
   gap: var(--space-lg);
   transform: translateY(-50%);
+}
+
+/* Keep every station physically attached to the central route. */
+.metro-station {
+  left: 50% !important;
+  width: 100%;
+  height: 96px;
+  justify-content: center;
+  transform: translate(-50%, -50%);
+}
+
+.metro-station::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0 35%, var(--sage-light) 42% 58%, transparent 65%);
+  opacity: .55;
+  pointer-events: none;
+}
+
+.metro-station .metro-dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 26px;
+  height: 26px;
+  border-width: 4px;
+  box-shadow: 0 0 0 6px var(--surface), 0 3px 12px rgba(69, 85, 58, .15);
+}
+
+.metro-station .metro-card {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+}
+
+.metro-station .metro-card.left {
+  right: calc(50% + 48px);
+  margin: 0;
+}
+
+.metro-station .metro-card.right {
+  left: calc(50% + 48px);
+  margin: 0;
 }
 
 .metro-dot {
@@ -208,14 +257,10 @@
 .focus-page {
   min-height: 100vh;
   padding: var(--space-xl);
-  background: var(--bg);
+  background: #fdfdf9;
+  color: #2a2d26;
   display: flex;
   flex-direction: column;
-}
-
-.focus-page.dark-mode {
-  background: #0f110d;
-  color: #d5d7ce;
 }
 
 .focus-header {
@@ -300,13 +345,23 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  background: var(--surface);
+  background: #fbfcf8;
   position: relative;
 }
 
-.focus-page.dark-mode .flow-stage {
-  background: #1a1c18;
-  border-color: #2d2f28;
+.flow-stage .react-flow {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+}
+
+.flow-stage .react-flow__renderer,
+.flow-stage .react-flow__viewport {
+  z-index: 1;
+}
+
+.flow-stage .react-flow__node {
+  z-index: 3;
 }
 
 .task-node {
@@ -315,21 +370,14 @@
   padding: 0;
   border-radius: var(--radius-lg);
   overflow: hidden;
-  background: var(--surface);
-  border: 2px solid var(--border);
-  box-shadow: var(--shadow-md);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(14px);
+  border: 1px solid #dfe6d8;
+  box-shadow:
+    0 10px 30px rgba(69, 85, 58, .10),
+    inset 0 1px 0 rgba(255, 255, 255, .9);
   position: relative;
   transition: all var(--transition-base);
-}
-
-/* Dark frosted glass in focus mode */
-.focus-page.dark-mode .task-node {
-  background: rgba(26, 28, 24, 0.8);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(122, 144, 104, 0.3);
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .task-node.is-completed {
@@ -400,8 +448,24 @@
   transition: color var(--transition-base);
 }
 
-.focus-page.dark-mode .task-title {
-  color: #e8ead8;
+@media (max-width: 760px) {
+  .metro-container {
+    min-height: 780px;
+    margin: 0 -8px;
+  }
+
+  .metro-station .metro-card {
+    min-width: 220px;
+    max-width: 240px;
+  }
+
+  .metro-station .metro-card.left {
+    right: calc(50% + 34px);
+  }
+
+  .metro-station .metro-card.right {
+    left: calc(50% + 34px);
+  }
 }
 
 .task-node.is-completed .task-title {
