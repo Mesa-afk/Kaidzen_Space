@@ -263,7 +263,9 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
   transition: all var(--transition-base);
   cursor: pointer;
   text-align: left;
@@ -324,6 +326,10 @@
 
 .card-body {
   padding: var(--space-lg);
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .card-level {
@@ -341,6 +347,7 @@
   color: var(--text);
   margin: 0 0 var(--space-sm);
   line-height: 1.3;
+  overflow-wrap: anywhere;
 }
 
 .card-description {
@@ -348,6 +355,10 @@
   color: var(--text-muted);
   line-height: 1.5;
   margin-bottom: var(--space-md);
+  overflow: visible;
+  height: auto;
+  max-height: none;
+  overflow-wrap: anywhere;
 }
 
 .card-footer {
@@ -356,6 +367,7 @@
   align-items: center;
   padding-top: var(--space-md);
   border-top: 1px solid var(--border);
+  margin-top: auto;
 }
 
 .author {
