@@ -165,7 +165,9 @@ function arrangeGraph(
   );
   
   const current = available[0];
-  const history = graph.filter((task) => task.type === "task" && task.status !== "pending");
+  const history = graph.filter((task) =>
+    (task.type === "task" && task.status !== "pending") || task.type === "container"
+  );
   const visible = current && !history.some((task) => task.id === current.id) ? [...history, current] : history;
   const visibleIds = new Set(visible.map((task) => task.id));
   
