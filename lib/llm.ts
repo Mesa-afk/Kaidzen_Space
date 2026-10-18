@@ -2,11 +2,13 @@ import { findCycle, GraphInvariantError, replaceTemporaryIds, type TaskNode } fr
 
 const REQUEST_TIMEOUT_MS = 15_000;
 const MAX_ATTEMPTS = 3;
+const MAX_PROMPT_CHARS = 12_000;
+const MAX_RESPONSE_BYTES = 256 * 1024;
 const DEFAULT_BASE_URL = "https://api.daluobo.cc.cd/v1";
 const DEFAULT_MODEL = "deepseek-v4.1-flash";
 
-export class LlmConfigurationError extends Error {}
-export class LlmRequestError extends Error {}
+export class LlmConfigurationError extends Error { readonly code = "LLM_NOT_CONFIGURED"; }
+export class LlmRequestError extends Error { constructor(message: string, readonly code = "LLM_REQUEST_FAILED") { super(message); } }
 
 export function getLlmConfig() {
   const apiKey = process.env.LLM_API_KEY;
@@ -19,11 +21,18 @@ export async function generateValidated<T>(options: {
   systemPrompt: string;
   userPrompt: string;
   parse: (value: unknown) => T;
+  requestId?: string;
+  signal?: AbortSignal;
 }): Promise<T> {
   const { apiKey, model, url } = getLlmConfig();
+  if (options.systemPrompt.length > MAX_PROMPT_CHARS || options.userPrompt.length > MAX_PROMPT_CHARS) {
+    throw new LlmRequestError("LLM prompt exceeds the permitted size", "LLM_INPUT_TOO_LARGE");
+  }
   let lastError: unknown;
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     const controller = new AbortController();
+    const abortFromCaller = () => controller.abort(options.signal?.reason);
+    options.signal?.addEventListener("abort", abortFromCaller, { once: true });
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
       const response = await fetch(url, {
@@ -40,21 +49,33 @@ export async function generateValidated<T>(options: {
           ],
         }),
       });
-      if (!response.ok) throw new LlmRequestError(`LLM provider returned HTTP ${response.status}`);
-      const body: unknown = await response.json();
+      if (!response.ok) {
+        if (response.status === 429) throw new LlmRequestError("LLM provider rate limit", "LLM_RATE_LIMITED");
+        throw new LlmRequestError("LLM provider request failed", response.status >= 500 ? "LLM_PROVIDER_UNAVAILABLE" : "LLM_REQUEST_REJECTED");
+      }
+      const raw = await response.text();
+      if (new TextEncoder().encode(raw).byteLength > MAX_RESPONSE_BYTES) throw new LlmRequestError("LLM provider response is too large", "LLM_RESPONSE_TOO_LARGE");
+      let body: unknown;
+      try { body = JSON.parse(raw); } catch { throw new LlmRequestError("LLM provider returned malformed JSON", "LLM_MALFORMED_RESPONSE"); }
       const content = (body as { choices?: { message?: { content?: string } }[] })?.choices?.[0]?.message?.content;
-      if (!content) throw new LlmRequestError("LLM provider returned an empty response");
-      const json: unknown = JSON.parse(content);
-      return options.parse(json);
+      if (!content?.trim()) throw new LlmRequestError("LLM provider returned an empty response", "LLM_EMPTY_RESPONSE");
+      let json: unknown;
+      try { json = JSON.parse(content); } catch { throw new LlmRequestError("LLM provider returned malformed content", "LLM_MALFORMED_CONTENT"); }
+      try { return options.parse(json); } catch { throw new LlmRequestError("LLM provider response failed schema validation", "LLM_SCHEMA_INVALID"); }
     } catch (error) {
-      lastError = error;
       if (error instanceof LlmConfigurationError) throw error;
-      console.warn(`LLM attempt ${attempt}/${MAX_ATTEMPTS} failed:`, error);
+      if (error instanceof Error && error.name === "AbortError") lastError = new LlmRequestError("LLM provider timed out", "LLM_TIMEOUT");
+      else if (error instanceof LlmRequestError) lastError = error;
+      else lastError = new LlmRequestError("LLM provider request failed", "LLM_NETWORK_ERROR");
+      const safeCode = lastError instanceof LlmRequestError ? lastError.code : "LLM_REQUEST_FAILED";
+      console.warn(`[llm] request=${options.requestId ?? "unknown"} attempt=${attempt}/${MAX_ATTEMPTS} code=${safeCode}`);
+      if (options.signal?.aborted) throw new LlmRequestError("LLM request cancelled", "LLM_CANCELLED");
     } finally {
       clearTimeout(timeout);
+      options.signal?.removeEventListener("abort", abortFromCaller);
     }
   }
-  throw new LlmRequestError(lastError instanceof Error ? lastError.message : "LLM generation failed");
+  throw lastError instanceof LlmRequestError ? lastError : new LlmRequestError("LLM generation failed");
 }
 
 export function assignRoadmapIds<T extends { days: { tasks: TaskNode[] }[] }>(roadmap: T): T {
