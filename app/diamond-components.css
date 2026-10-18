@@ -132,8 +132,8 @@
 
 .button-create {
   border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--sage-dark);
+  background: var(--secondary-bg);
+  color: var(--secondary-text);
 }
 
 .button-create:hover {
@@ -142,14 +142,14 @@
 }
 
 .button-primary {
-  background: var(--sage);
-  color: white;
-  border: 1px solid var(--sage);
+  background: var(--primary);
+  color: var(--primary-text);
+  border: 1px solid var(--primary);
 }
 
 .button-primary:hover {
-  background: var(--sage-dark);
-  border-color: var(--sage-dark);
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
 }
 
 .button-primary:disabled {
@@ -159,8 +159,8 @@
 
 .button-outline {
   border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text);
+  background: var(--secondary-bg);
+  color: var(--secondary-text);
 }
 
 .button-outline:hover {

@@ -283,7 +283,9 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  background: #fbfcf8;
+  background-color: var(--canvas-bg);
+  background-image: radial-gradient(var(--canvas-dot) 0.7px, transparent 0.7px);
+  background-size: 18px 18px;
   position: relative;
 }
 
@@ -292,6 +294,27 @@
   height: 100%;
   min-height: 0;
   background: transparent;
+}
+
+.flow-stage .react-flow__background {
+  background: transparent;
+}
+
+.flow-stage .react-flow__controls {
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+}
+
+.flow-stage .react-flow__controls-button {
+  background: var(--surface-elevated);
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.flow-stage .react-flow__controls-button:hover {
+  background: var(--surface-hover);
+  color: var(--text);
 }
 
 .flow-stage .react-flow__renderer,

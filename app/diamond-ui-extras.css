@@ -100,9 +100,9 @@
 }
 
 .button-like.liked {
-  color: #e74c3c;
-  background: #fff5f5;
-  border-color: #ffcccb;
+  color: var(--like-text);
+  background: var(--like-bg);
+  border-color: var(--like-border);
 }
 
 .button-like.liked:hover {
@@ -149,6 +149,7 @@
 [data-theme="dark"] .detail-hero.neutral { background: linear-gradient(135deg, #41433e 0%, #55574f 100%); }
 [data-theme="dark"] .detail-hero.rose { background: linear-gradient(135deg, #633f45 0%, #814f58 100%); }
 [data-theme="dark"] .detail-hero.green { background: linear-gradient(135deg, #3d5e45 0%, #4d7958 100%); }
+[data-theme="dark"] .detail-hero { background: linear-gradient(135deg, var(--surface-elevated) 0%, color-mix(in srgb, var(--surface-elevated) 78%, var(--sage)) 100%); }
 
 .detail-emoji {
   font-size: 72px;

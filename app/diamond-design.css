@@ -4,11 +4,14 @@
 
 :root {
   /* Light Theme Colors */
-  --bg: #fdfdf9;
-  --surface: #ffffff;
-  --surface-hover: #fafbf8;
-  --border: #e8ebe3;
-  --border-strong: #d4d8cc;
+  --bg: #f7f5ef;
+  --canvas-bg: #f0f1eb;
+  --canvas-dot: #d5dbcf;
+  --surface: #fffefa;
+  --surface-elevated: #ffffff;
+  --surface-hover: #f3f5ef;
+  --border: #dfe5da;
+  --border-strong: #c5d0bf;
   
   --text: #2a2d26;
   --text-muted: #73766d;
@@ -18,6 +21,11 @@
   --sage-dark: #5c6e50;
   --sage-light: #a8c095;
   --sage-bg: #f1f5ed;
+  --primary: #718765;
+  --primary-hover: #5c704f;
+  --primary-text: #ffffff;
+  --secondary-bg: #f4f6f1;
+  --secondary-text: #4f6346;
   
   --warm-yellow: #f0c94e;
   --warm-yellow-light: #fff4c2;
@@ -31,6 +39,12 @@
   --error-bg: #fff5f2;
   --error-border: #e5bcb4;
   --error-text: #7e342b;
+  --success-bg: #dcebd4;
+  --success-text: #385530;
+  --success-border: #a9c69a;
+  --like-bg: #fff5f5;
+  --like-text: #a83e38;
+  --like-border: #efb9b6;
   
   /* Spacing */
   --space-xs: 4px;
@@ -62,24 +76,32 @@
 }
 
 [data-theme="dark"] {
-  --bg: #1a1d18;
-  --surface: #242721;
-  --surface-hover: #2c2f28;
-  --border: #35382f;
-  --border-strong: #484b40;
+  --bg: #151d27;
+  --canvas-bg: #1d2935;
+  --canvas-dot: #435462;
+  --surface: #25323e;
+  --surface-elevated: #2b3946;
+  --surface-hover: #30414c;
+  --border: #3d4d5a;
+  --border-strong: #536573;
   
   --text: #e4e6df;
-  --text-muted: #9ca098;
-  --text-subtle: #6e716a;
+  --text-muted: #aab7bd;
+  --text-subtle: #7d8b94;
   
-  --sage: #92a880;
-  --sage-dark: #7d9170;
-  --sage-light: #b0c79e;
-  --sage-bg: #262a23;
+  --sage: #89aa99;
+  --sage-dark: #709483;
+  --sage-light: #a8c5b1;
+  --sage-bg: #263b3b;
+  --primary: #719886;
+  --primary-hover: #8caf9a;
+  --primary-text: #10231e;
+  --secondary-bg: #2b3946;
+  --secondary-text: #d7e5df;
   
   --warm-yellow: #f5d665;
   --warm-yellow-light: #fff9d5;
-  --cream: #34362f;
+  --cream: #293640;
   
   --completed: #8ba677;
   --completed-bg: #2a2f26;
@@ -89,6 +111,12 @@
   --error-bg: #382522;
   --error-border: #765049;
   --error-text: #f0b7ad;
+  --success-bg: #294438;
+  --success-text: #c7e2cf;
+  --success-border: #5e9277;
+  --like-bg: #3d2d35;
+  --like-text: #ffb2ac;
+  --like-border: #80515a;
   
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
