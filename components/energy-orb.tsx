@@ -120,10 +120,7 @@ export function EnergyOrb({ xp }: { xp: number }) {
         <circle className="orb-spark orb-spark-two" cx="68" cy="42" r="1.2" />
       </svg>
       
-      {/* XP value - only show when not in dark state */}
-      {!isDark && (
-        <span className="orb-value">{xp}<small>%</small></span>
-      )}
+      <span className="orb-value">{xp}<small>%</small></span>
     </div>
   );
 }

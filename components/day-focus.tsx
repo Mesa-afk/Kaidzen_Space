@@ -1,8 +1,7 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
-import { ReactFlow, Background, Controls, Handle, MarkerType, Position, getBezierPath, type Edge, type EdgeProps, type Node, type NodeProps } from "@xyflow/react";
-import dagre from "dagre";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ReactFlow, Background, Controls, Handle, MarkerType, Position, getBezierPath, useReactFlow, type Edge, type EdgeProps, type Node, type NodeProps } from "@xyflow/react";
 import { useKaizenStore } from "@/lib/store";
 import { completedLeafXp, completesDayAt100Xp, splitTask, type TaskNode } from "@/lib/graph";
 import { EnergyOrb } from "@/components/energy-orb";
@@ -11,8 +10,8 @@ import { playRewardSound } from "@/lib/reward-sound";
 import { mockSplitTask } from "@/lib/mock-split";
 import { isBackendEnabled, splitTaskApi } from "@/lib/api-client";
 
-const NODE_WIDTH = 560;
-const NODE_HEIGHT = 140;
+const NODE_STEP_X = 100;
+const NODE_STEP_Y = 225;
 
 type TaskData = {
   task: TaskNode;
@@ -22,11 +21,12 @@ type TaskData = {
   willReachReward: (id: string) => boolean;
   splitting: boolean;
   completing: boolean;
+  current: boolean;
   soundEnabled: boolean;
 };
 
 function TaskCard({ data }: NodeProps<Node<TaskData>>) {
-  const { task, onComplete, onSkip, onSplit, willReachReward, splitting, completing, soundEnabled } = data;
+  const { task, onComplete, onSkip, onSplit, willReachReward, splitting, completing, current, soundEnabled } = data;
   const [menuOpen, setMenuOpen] = useState(false);
   
   const handleComplete = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -50,7 +50,7 @@ function TaskCard({ data }: NodeProps<Node<TaskData>>) {
   
   return (
     <div 
-      className={`task-node ${task.status === "completed" ? "is-completed" : ""} ${task.status === "skipped" ? "is-skipped" : ""} ${completing ? "is-completing" : ""}`}
+        className={`task-node ${task.status === "completed" ? "is-completed" : ""} ${task.status === "skipped" ? "is-skipped" : ""} ${completing ? "is-completing" : ""} ${current ? "is-current" : ""}`}
     >
       <Handle type="target" position={Position.Top} />
       <div className="task-progress-fill" aria-hidden="true" />
@@ -134,7 +134,12 @@ function TaskCard({ data }: NodeProps<Node<TaskData>>) {
 
 function GrowingEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, markerEnd, data }: EdgeProps<Edge<{ active: boolean }>>) {
   const [path] = getBezierPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition });
-  return <path id={id} d={path} className={`react-flow__edge-path growth-edge ${data?.active ? "edge-active" : ""}`} markerEnd={markerEnd} />;
+  return (
+    <>
+      <path id={id} d={path} pathLength={1} className={`react-flow__edge-path growth-edge ${data?.active ? "edge-active" : ""}`} markerEnd={data?.active ? undefined : markerEnd} />
+      {data?.active && <path d={path} pathLength={1} className="growth-edge-tip" markerEnd={markerEnd} aria-hidden="true" />}
+    </>
+  );
 }
 
 const nodeTypes = { taskCard: TaskCard };
@@ -148,6 +153,7 @@ function arrangeGraph(
   willReachReward: (id: string) => boolean,
   splittingId: string | null,
   completingId: string | null,
+  justCompletedId: string | null,
   soundEnabled: boolean = true
 ) {
   const available = graph.filter((task) => 
@@ -159,36 +165,16 @@ function arrangeGraph(
   );
   
   const current = available[0];
-  const currentIndex = current ? graph.findIndex((task) => task.id === current.id) : -1;
-  const previous = current 
-    ? [...graph.slice(0, currentIndex)].reverse().find((task) => task.type === "task" && task.status !== "pending") 
-    : [...graph].reverse().find((task) => task.type === "task");
-  const visible = current ? [...(previous ? [previous] : []), current] : previous ? [previous] : [];
+  const history = graph.filter((task) => task.type === "task" && task.status !== "pending");
+  const visible = current && !history.some((task) => task.id === current.id) ? [...history, current] : history;
   const visibleIds = new Set(visible.map((task) => task.id));
   
-  const dagreGraph = new dagre.graphlib.Graph();
-  dagreGraph.setDefaultEdgeLabel(() => ({}));
-  dagreGraph.setGraph({ rankdir: "TB", nodesep: 48, ranksep: 84, marginx: 24, marginy: 30 });
-  
-  visible.forEach((task) => dagreGraph.setNode(task.id, { width: NODE_WIDTH, height: NODE_HEIGHT }));
-  visible.forEach((task) => 
-    task.dependencies.forEach((dependency) => {
-      if (visibleIds.has(dependency)) dagreGraph.setEdge(dependency, task.id);
-    })
-  );
-  
-  if (current && previous && !current.dependencies.some((dependency) => dependency === previous.id)) {
-    dagreGraph.setEdge(previous.id, current.id);
-  }
-  
-  dagre.layout(dagreGraph);
-  
   const nodes: Node<TaskData>[] = visible.map((task) => {
-    const point = dagreGraph.node(task.id);
     return {
       id: task.id,
       type: "taskCard",
-      position: { x: point.x - NODE_WIDTH / 2, y: point.y - NODE_HEIGHT / 2 },
+      position: { x: 80 + visible.indexOf(task) * NODE_STEP_X, y: 48 + visible.indexOf(task) * NODE_STEP_Y },
+      className: task.id === current?.id ? "task-node-current" : undefined,
       data: {
         task,
         onComplete,
@@ -197,6 +183,7 @@ function arrangeGraph(
         willReachReward,
         splitting: splittingId === task.id,
         completing: completingId === task.id,
+        current: task.id === current?.id,
         soundEnabled,
       },
       draggable: false,
@@ -204,18 +191,40 @@ function arrangeGraph(
     };
   });
   
-  const edges: Edge<{ active: boolean }>[] = current && previous ? [
-    {
-      id: `${previous.id}-${current.id}`,
-      source: previous.id,
-      target: current.id,
+  const edges: Edge<{ active: boolean }>[] = visible.flatMap((task) => task.dependencies
+    .filter((dependency) => visibleIds.has(dependency))
+    .map((dependency) => ({
+      id: `${dependency}-${task.id}`,
+      source: dependency,
+      target: task.id,
       type: "growth",
       markerEnd: { type: MarkerType.ArrowClosed, color: "#7a9068" },
-      data: { active: previous.status !== "pending" },
-    },
-  ] : [];
+      data: { active: justCompletedId === dependency },
+    })));
   
   return { nodes, edges };
+}
+
+function FocusCamera({ currentNodeId }: { currentNodeId?: string }) {
+  const { fitView } = useReactFlow();
+  const previousNodeRef = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (!currentNodeId || previousNodeRef.current === currentNodeId) return;
+    previousNodeRef.current = currentNodeId;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const frame = requestAnimationFrame(() => {
+      void fitView({
+        nodes: [{ id: currentNodeId }],
+        padding: 0.35,
+        maxZoom: 0.9,
+        duration: reducedMotion ? 0 : 550,
+      });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [currentNodeId, fitView]);
+
+  return null;
 }
 
 export function DayFocus({ roadmapTitle, dayNumber, storageKey, onBack }: { roadmapTitle: string; dayNumber: number; storageKey: string; onBack: () => void }) {
@@ -225,10 +234,12 @@ export function DayFocus({ roadmapTitle, dayNumber, storageKey, onBack }: { road
   const [splittingId, setSplittingId] = useState<string | null>(null);
   const [splitError, setSplitError] = useState<string | null>(null);
   const [completingId, setCompletingId] = useState<string | null>(null);
+  const [justCompletedId, setJustCompletedId] = useState<string | null>(null);
   const [showParticles, setShowParticles] = useState<{ xp: number; x: number; y: number } | null>(null);
   
   const onComplete = useCallback((id: string, xp: number, sourceX: number, sourceY: number) => {
     setCompletingId(id);
+    setJustCompletedId(id);
     
     // Delay actual completion for animation
     setTimeout(() => {
@@ -240,6 +251,7 @@ export function DayFocus({ roadmapTitle, dayNumber, storageKey, onBack }: { road
       // Show XP particles
       setShowParticles({ xp, x: sourceX, y: sourceY });
       setTimeout(() => setShowParticles(null), 1300);
+      setTimeout(() => setJustCompletedId(null), 800);
     }, 600);
   }, [graph, storageKey, updateFocusGraph]);
   
@@ -280,8 +292,8 @@ export function DayFocus({ roadmapTitle, dayNumber, storageKey, onBack }: { road
   }, [graph, storageKey, updateFocusGraph]);
   
   const { nodes, edges } = useMemo(() => 
-    arrangeGraph(graph, onComplete, onSkip, onSplit, willReachReward, splittingId, completingId, soundEnabled), 
-    [graph, onComplete, onSkip, onSplit, willReachReward, splittingId, completingId, soundEnabled]
+    arrangeGraph(graph, onComplete, onSkip, onSplit, willReachReward, splittingId, completingId, justCompletedId, soundEnabled), 
+    [graph, onComplete, onSkip, onSplit, willReachReward, splittingId, completingId, justCompletedId, soundEnabled]
   );
   
   const xp = completedLeafXp(graph);
@@ -340,15 +352,14 @@ export function DayFocus({ roadmapTitle, dayNumber, storageKey, onBack }: { road
             edges={edges}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
-            fitView
-            fitViewOptions={{ padding: 0.22, maxZoom: 1 }}
-            minZoom={0.35}
+          minZoom={0.35}
             maxZoom={1.2}
             nodesDraggable={false}
             nodesConnectable={false}
             elementsSelectable={false}
             proOptions={{ hideAttribution: true }}
-          >
+        >
+          <FocusCamera currentNodeId={nodes.find((node) => node.data.current)?.id} />
             <Background color="#dfe6d8" gap={22} size={1} />
             <Controls showInteractive={false} />
           </ReactFlow>
