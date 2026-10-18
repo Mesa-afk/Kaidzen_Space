@@ -50,3 +50,4 @@ export const splitRequestSchema = z.object({
 export const splitResponseSchema = z.object({ tasks: z.array(roadmapTaskSchema).min(2).max(5) });
 
 export type RoadmapTask = z.infer<typeof roadmapTaskSchema>;
+export type RoadmapResponse = z.infer<typeof roadmapResponseSchema>;
