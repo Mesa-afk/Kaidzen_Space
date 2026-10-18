@@ -18,6 +18,10 @@ export function idempotencyKey(request: Request) {
 }
 
 export async function readJsonBody(request: Request, maxBytes = MAX_REQUEST_BYTES): Promise<unknown> {
+  const contentType = request.headers.get("content-type");
+  if (contentType && !contentType.toLowerCase().startsWith("application/json")) {
+    throw validationError("Content-Type must be application/json", [{ path: ["Content-Type"], message: "Expected application/json" }]);
+  }
   const contentLength = request.headers.get("content-length");
   if (contentLength && (!/^\d+$/.test(contentLength) || Number(contentLength) > maxBytes)) {
     throw new ApiError("REQUEST_TOO_LARGE", "Request body is too large", 413);
