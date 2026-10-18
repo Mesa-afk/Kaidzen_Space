@@ -14,7 +14,7 @@ export function idempotencyKey(request: Request) {
   if (value && !/^[a-zA-Z0-9._:-]{1,200}$/.test(value)) {
     throw validationError("Invalid Idempotency-Key header", [{ path: ["Idempotency-Key"], message: "Use 1-200 safe characters" }]);
   }
-  return value;
+  return value ?? undefined;
 }
 
 export async function readJsonBody(request: Request, maxBytes = MAX_REQUEST_BYTES): Promise<unknown> {
