@@ -30,6 +30,10 @@ function TaskCard({ data }: NodeProps<Node<TaskData>>) {
   
   const handleComplete = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
+    
+    // Prevent double-click during animation
+    if (completing) return;
+    
     const button = event.currentTarget;
     const rect = button.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
@@ -111,7 +115,7 @@ function TaskCard({ data }: NodeProps<Node<TaskData>>) {
           <button
             className={`task-check nodrag nopan ${task.status === "completed" ? "checked" : ""}`}
             aria-label={task.status === "completed" ? "Задача выполнена" : "Отметить выполненной"}
-            disabled={task.status !== "pending"}
+            disabled={task.status !== "pending" || completing}
             onPointerDown={(event) => event.stopPropagation()}
             onClick={handleComplete}
           >

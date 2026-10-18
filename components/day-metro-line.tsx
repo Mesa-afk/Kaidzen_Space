@@ -6,10 +6,11 @@ type DayMetroLineProps = {
   days: RoadmapDay[];
   completedDays?: number[];
   currentDay?: number;
+  dayProgress?: Record<number, number>; // dayNumber -> percentage
   onDayClick: (dayNumber: number) => void;
 };
 
-export function DayMetroLine({ days, completedDays = [], currentDay, onDayClick }: DayMetroLineProps) {
+export function DayMetroLine({ days, completedDays = [], currentDay, dayProgress = {}, onDayClick }: DayMetroLineProps) {
   return (
     <div className="metro-container">
       <svg className="metro-line-svg" viewBox="0 0 100 800" preserveAspectRatio="none">
@@ -36,6 +37,7 @@ export function DayMetroLine({ days, completedDays = [], currentDay, onDayClick 
         {days.map((day, index) => {
           const isCompleted = completedDays.includes(day.dayNumber);
           const isCurrent = currentDay === day.dayNumber;
+          const progress = dayProgress[day.dayNumber] ?? 0;
           const offsetLeft = index % 2 === 0 ? "20%" : "80%";
           const cardAlign = index % 2 === 0 ? "left" : "right";
           
@@ -87,11 +89,11 @@ export function DayMetroLine({ days, completedDays = [], currentDay, onDayClick 
                       stroke="currentColor"
                       strokeWidth="2"
                       strokeDasharray="100"
-                      strokeDashoffset={isCompleted ? "0" : "100"}
+                      strokeDashoffset={100 - progress}
                       className="progress-ring-circle"
                     />
                   </svg>
-                  <span className="progress-percent">{isCompleted ? "100" : "0"}%</span>
+                  <span className="progress-percent">{progress}%</span>
                 </div>
               </button>
             </div>

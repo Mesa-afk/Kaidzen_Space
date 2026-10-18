@@ -10,11 +10,15 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { SoundToggle } from "@/components/sound-toggle";
 import { DayMetroLine } from "@/components/day-metro-line";
 import { distributeXp, type TaskNode } from "@/lib/graph";
+import { mockGenerateRoadmap } from "@/lib/mock-generate";
+import { calculateCompletedDays, findCurrentDay, calculateDayProgress } from "@/lib/progress";
 
 type View = "repository" | "mine";
+type SortMode = "for-you" | "popular" | "recent";
 
 export default function Home() {
   const [view, setView] = useState<View>("repository");
+  const [sortMode, setSortMode] = useState<SortMode>("for-you");
   const [selected, setSelected] = useState<Roadmap | null>(null);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [query, setQuery] = useState("");
@@ -26,10 +30,25 @@ export default function Home() {
   const [notice, setNotice] = useState("");
   
   const hydrated = useHydrated();
-  const { myRoadmaps, likedIds, addRoadmap, removeRoadmap, toggleLike, focusGraphs, setFocusGraph } = useKaizenStore();
+  const { myRoadmaps, addRoadmap, removeRoadmap, focusGraphs, setFocusGraph, likedRoadmapIds, toggleLike } = useKaizenStore();
   
   const roadmaps = view === "repository" ? enhancedDemoRoadmaps : myRoadmaps;
-  const visible = roadmaps.filter((roadmap) => 
+  
+  // Apply sorting
+  const sortedRoadmaps = [...roadmaps].sort((a, b) => {
+    if (sortMode === "popular") {
+      return b.likes - a.likes || b.rating - a.rating;
+    } else if (sortMode === "recent") {
+      // For demo, sort by id (newer ids are more recent)
+      return b.id.localeCompare(a.id);
+    }
+    // "for-you" - default order with liked items first
+    const aLiked = likedRoadmapIds.includes(a.id) ? 1 : 0;
+    const bLiked = likedRoadmapIds.includes(b.id) ? 1 : 0;
+    return bLiked - aLiked || b.rating - a.rating;
+  });
+  
+  const visible = sortedRoadmaps.filter((roadmap) => 
     roadmap.title.toLowerCase().includes(query.toLowerCase())
   );
 
@@ -56,6 +75,22 @@ export default function Home() {
     setSelected(null);
     setSelectedDay(null);
   };
+  
+  const shareRoadmap = (roadmap: Roadmap) => {
+    if (navigator.share) {
+      navigator.share({
+        title: roadmap.title,
+        text: roadmap.description,
+        url: window.location.href,
+      }).catch(() => {
+        // User cancelled share
+      });
+    } else {
+      // Fallback: copy to clipboard
+      navigator.clipboard.writeText(window.location.href);
+      setNotice("Ссылка скопирована в буфер обмена");
+    }
+  };
 
   const generateRoadmap = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -63,21 +98,12 @@ export default function Home() {
     setCreateError("");
     
     try {
-      const response = await fetch("/api/roadmaps/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic, level }),
-      });
+      // Use mock generation instead of API for demo
+      // In production, this would call: fetch("/api/roadmaps/generate", ...)
+      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
       
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Не удалось создать роудмап.");
-      
+      const generated = mockGenerateRoadmap(topic, level);
       const id = crypto.randomUUID();
-      const generated = result as {
-        project_title: string;
-        project_emoji: string;
-        days: { day_number: number; tasks: TaskNode[] }[];
-      };
       
       const roadmap: Roadmap = {
         id,
@@ -106,6 +132,7 @@ export default function Home() {
       setShowCreate(false);
       setSelected(roadmap);
       setTopic("");
+      setLevel("");
       setNotice("Твой новый роудмап готов — он уже на полке.");
     } catch (error) {
       setCreateError(
@@ -262,32 +289,50 @@ export default function Home() {
 
             <div className={`detail-hero ${selected.color}`}>
               <span className="detail-emoji">{selected.emoji}</span>
-              <div>
+              <div className="detail-hero-content">
                 <span className="eyebrow">{selected.level}</span>
                 <h1>{selected.title}</h1>
                 <p>{selected.description}</p>
-              </div>
-              
-              {view === "repository" ? (
-                <button
-                  className="button-primary"
-                  disabled={isOnShelf(selected)}
-                  onClick={() => takeRoadmap(selected)}
-                >
-                  {isOnShelf(selected) ? "✓ Уже на полке" : (
-                    <>
-                      Добавить на полку <span>↗</span>
-                    </>
+                
+                <div className="detail-actions">
+                  {view === "repository" ? (
+                    <button
+                      className="button-primary"
+                      disabled={isOnShelf(selected)}
+                      onClick={() => takeRoadmap(selected)}
+                    >
+                      {isOnShelf(selected) ? "✓ Уже на полке" : (
+                        <>
+                          Добавить на полку <span>↗</span>
+                        </>
+                      )}
+                    </button>
+                  ) : (
+                    <button
+                      className="button-remove"
+                      onClick={() => removeFromShelf(selected)}
+                    >
+                      Убрать с полки
+                    </button>
                   )}
-                </button>
-              ) : (
-                <button
-                  className="button-remove"
-                  onClick={() => removeFromShelf(selected)}
-                >
-                  Убрать с полки
-                </button>
-              )}
+                  
+                  <button
+                    className="button-outline"
+                    onClick={() => shareRoadmap(selected)}
+                    title="Поделиться"
+                  >
+                    Поделиться <span>↗</span>
+                  </button>
+                  
+                  <button
+                    className={`button-like ${likedRoadmapIds.includes(selected.id) ? "liked" : ""}`}
+                    onClick={() => toggleLike(selected.id)}
+                    title={likedRoadmapIds.includes(selected.id) ? "Убрать из избранного" : "Добавить в избранное"}
+                  >
+                    {likedRoadmapIds.includes(selected.id) ? "♥" : "♡"}
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div className="days-heading">
@@ -301,12 +346,30 @@ export default function Home() {
             </div>
 
             {/* Metro Line Visualization */}
-            <DayMetroLine
-              days={selected.days}
-              completedDays={[]}
-              currentDay={1}
-              onDayClick={(dayNumber) => openDay(selected, dayNumber)}
-            />
+            {(() => {
+              const completedDays = calculateCompletedDays(selected.id, selected.days.length, focusGraphs);
+              const currentDay = findCurrentDay(selected.id, selected.days.length, focusGraphs);
+              const dayProgress: Record<number, number> = {};
+              
+              selected.days.forEach((day) => {
+                const storageKey = `${selected.id}:${day.dayNumber}`;
+                const graph = focusGraphs[storageKey];
+                if (graph) {
+                  const progress = calculateDayProgress(graph);
+                  dayProgress[day.dayNumber] = progress.percentage;
+                }
+              });
+              
+              return (
+                <DayMetroLine
+                  days={selected.days}
+                  completedDays={completedDays}
+                  currentDay={currentDay}
+                  dayProgress={dayProgress}
+                  onDayClick={(dayNumber) => openDay(selected, dayNumber)}
+                />
+              );
+            })()}
           </div>
         ) : (
           <>
@@ -446,11 +509,24 @@ export default function Home() {
               {/* Filter Row */}
               <div className="filter-row">
                 <div className="tabs">
-                  <button className="tab active">
+                  <button 
+                    className={`tab ${sortMode === "for-you" ? "active" : ""}`}
+                    onClick={() => setSortMode("for-you")}
+                  >
                     Для тебя <span>✳</span>
                   </button>
-                  <button className="tab">Популярное</button>
-                  <button className="tab">Недавно добавленные</button>
+                  <button 
+                    className={`tab ${sortMode === "popular" ? "active" : ""}`}
+                    onClick={() => setSortMode("popular")}
+                  >
+                    Популярное
+                  </button>
+                  <button 
+                    className={`tab ${sortMode === "recent" ? "active" : ""}`}
+                    onClick={() => setSortMode("recent")}
+                  >
+                    Недавно добавленные
+                  </button>
                 </div>
                 
                 <label className="search">

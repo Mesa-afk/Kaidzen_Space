@@ -59,13 +59,54 @@
 
 .detail-hero {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-xl);
   padding: var(--space-2xl);
   background: linear-gradient(135deg, var(--sage-light) 0%, var(--sage) 100%);
   border-radius: var(--radius-xl);
   margin-bottom: var(--space-2xl);
   border: 1px solid var(--border);
+}
+
+.detail-hero-content {
+  flex: 1;
+}
+
+.detail-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+}
+
+.button-like {
+  width: 42px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 20px;
+  transition: all var(--transition-fast);
+  display: grid;
+  place-items: center;
+}
+
+.button-like:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+  transform: scale(1.05);
+}
+
+.button-like.liked {
+  color: #e74c3c;
+  background: #fff5f5;
+  border-color: #ffcccb;
+}
+
+.button-like.liked:hover {
+  background: #ffe5e5;
 }
 
 .detail-hero.peach {

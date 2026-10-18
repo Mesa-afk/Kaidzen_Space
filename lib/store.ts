@@ -7,25 +7,25 @@ export type ThemeMode = "light" | "dark";
 
 type KaizenState = {
   myRoadmaps: Roadmap[];
-  likedIds: string[];
   focusGraphs: Record<string, TaskNode[]>;
   themeMode: ThemeMode;
   soundEnabled: boolean;
+  likedRoadmapIds: string[]; // Track liked roadmap IDs
   addRoadmap: (roadmap: Roadmap) => void;
   removeRoadmap: (id: string) => void;
-  toggleLike: (id: string) => void;
   setFocusGraph: (key: string, graph: TaskNode[]) => void;
   updateFocusGraph: (key: string, graph: TaskNode[]) => void;
   setThemeMode: (mode: ThemeMode) => void;
   toggleSound: () => void;
+  toggleLike: (roadmapId: string) => void;
 };
 
 export const useKaizenStore = create<KaizenState>()(persist((set) => ({
   myRoadmaps: [],
-  likedIds: [],
   focusGraphs: {},
   themeMode: "light",
   soundEnabled: true,
+  likedRoadmapIds: [],
   addRoadmap: (roadmap) => set((state) => {
     const sourceId = roadmapSourceId(roadmap);
     if (state.myRoadmaps.some((item) => roadmapSourceId(item) === sourceId)) return state;
@@ -38,14 +38,18 @@ export const useKaizenStore = create<KaizenState>()(persist((set) => ({
     const focusGraphs = Object.fromEntries(Object.entries(state.focusGraphs).filter(([key]) => !key.startsWith(prefix)));
     return { myRoadmaps: state.myRoadmaps.filter((item) => item.id !== id), focusGraphs };
   }),
-  toggleLike: (id) => set((state) => ({ likedIds: state.likedIds.includes(id) ? state.likedIds.filter((item) => item !== id) : [...state.likedIds, id] })),
   setFocusGraph: (key, graph) => set((state) => state.focusGraphs[key] ? state : { focusGraphs: { ...state.focusGraphs, [key]: graph } }),
   updateFocusGraph: (key, graph) => set((state) => ({ focusGraphs: { ...state.focusGraphs, [key]: graph } })),
   setThemeMode: (mode) => set({ themeMode: mode }),
   toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
+  toggleLike: (roadmapId) => set((state) => ({
+    likedRoadmapIds: state.likedRoadmapIds.includes(roadmapId)
+      ? state.likedRoadmapIds.filter((id) => id !== roadmapId)
+      : [...state.likedRoadmapIds, roadmapId],
+  })),
 }), {
   name: "kaizen-roadmaps",
-  version: 3,
+  version: 4,
   storage: createJSONStorage(() => localStorage),
   migrate: (persistedState) => {
     const state = persistedState as KaizenState;
@@ -54,6 +58,7 @@ export const useKaizenStore = create<KaizenState>()(persist((set) => ({
       myRoadmaps: dedupeRoadmaps(state.myRoadmaps ?? []),
       themeMode: state.themeMode ?? "light",
       soundEnabled: state.soundEnabled ?? true,
+      likedRoadmapIds: state.likedRoadmapIds ?? [],
     };
   },
 }));

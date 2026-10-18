@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 type ParticleProps = {
   xp: number;
@@ -11,13 +11,12 @@ type ParticleProps = {
 };
 
 export function XPParticles({ xp, sourceX, sourceY, targetSelector, onComplete }: ParticleProps) {
-  const [particles, setParticles] = useState<Array<{ id: number; targetX: number; targetY: number }>>([]);
   const [isAnimating, setIsAnimating] = useState(true);
 
-  useEffect(() => {
-    // Get target position
+  // Calculate particles once on mount
+  const particles = useMemo(() => {
     const targetElement = document.querySelector(targetSelector);
-    if (!targetElement) return;
+    if (!targetElement) return [];
     
     const targetRect = targetElement.getBoundingClientRect();
     const targetX = targetRect.left + targetRect.width / 2;
@@ -25,14 +24,14 @@ export function XPParticles({ xp, sourceX, sourceY, targetSelector, onComplete }
     
     // Create 3-5 particles
     const particleCount = Math.min(5, Math.max(3, Math.floor(xp / 20)));
-    const newParticles = Array.from({ length: particleCount }, (_, index) => ({
+    return Array.from({ length: particleCount }, (_, index) => ({
       id: index,
       targetX,
       targetY,
     }));
-    
-    setParticles(newParticles);
-    
+  }, [xp, targetSelector]);
+
+  useEffect(() => {
     // Clean up after animation
     const timer = setTimeout(() => {
       setIsAnimating(false);
@@ -40,7 +39,7 @@ export function XPParticles({ xp, sourceX, sourceY, targetSelector, onComplete }
     }, 1200);
     
     return () => clearTimeout(timer);
-  }, [xp, sourceX, sourceY, targetSelector, onComplete]);
+  }, [onComplete]);
 
   if (!isAnimating) return null;
 

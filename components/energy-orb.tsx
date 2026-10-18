@@ -1,19 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export function EnergyOrb({ xp }: { xp: number }) {
   const [isRewarding, setIsRewarding] = useState(false);
-  const [prevXp, setPrevXp] = useState(xp);
+  const prevXpRef = useRef(xp);
   
   useEffect(() => {
+    const prevXp = prevXpRef.current;
     if (xp >= 100 && prevXp < 100) {
       setIsRewarding(true);
       const timer = setTimeout(() => setIsRewarding(false), 1500);
+      prevXpRef.current = xp;
       return () => clearTimeout(timer);
     }
-    setPrevXp(xp);
-  }, [xp, prevXp]);
+    prevXpRef.current = xp;
+  }, [xp]);
   
   // Progressive evolution of orb appearance
   const level = xp >= 100 ? "reward" : xp >= 75 ? "radiant" : xp >= 50 ? "warm" : xp >= 25 ? "glow" : "dark";
