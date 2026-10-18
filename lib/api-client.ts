@@ -16,9 +16,11 @@ async function postJson<T>(url: string, body: unknown, parse: (value: unknown) =
     const error = payload as { error?: { code?: string; message?: string } } | null;
     throw new ApiClientError(error?.error?.message ?? "Request failed", error?.error?.code ?? "API_ERROR");
   }
-  const result = parse(payload);
-  if (!result) throw new ApiClientError("Server returned an invalid response", "INVALID_RESPONSE");
-  return result;
+  try {
+    return parse(payload);
+  } catch {
+    throw new ApiClientError("Server returned an invalid response", "INVALID_RESPONSE");
+  }
 }
 
 export function isBackendEnabled() {
