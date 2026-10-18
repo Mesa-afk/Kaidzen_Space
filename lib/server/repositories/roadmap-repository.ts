@@ -18,8 +18,12 @@ export type StoredRoadmap = {
  * implementation, so adding Postgres/Prisma later does not change API logic.
  */
 export interface RoadmapRepository {
+  list(query: { search?: string; sort?: "popular" | "recent" }): Promise<StoredRoadmap[]>;
   get(id: string, owner: RoadmapOwner): Promise<StoredRoadmap | null>;
   save(roadmap: StoredRoadmap): Promise<void>;
   replaceGraph(id: string, owner: RoadmapOwner, days: StoredRoadmap["days"]): Promise<StoredRoadmap>;
+  addToShelf(sourceId: string, owner: RoadmapOwner): Promise<void>;
+  removeFromShelf(sourceId: string, owner: RoadmapOwner): Promise<void>;
+  toggleLike(id: string, owner: RoadmapOwner): Promise<void>;
   transaction<T>(work: (repository: RoadmapRepository) => Promise<T>): Promise<T>;
 }
