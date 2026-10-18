@@ -15,6 +15,7 @@ type KaizenState = {
   removeRoadmap: (id: string) => void;
   setFocusGraph: (key: string, graph: TaskNode[]) => void;
   updateFocusGraph: (key: string, graph: TaskNode[]) => void;
+  mergeServerFocusGraphs: (graphs: Record<string, TaskNode[]>) => void;
   setThemeMode: (mode: ThemeMode) => void;
   toggleSound: () => void;
   toggleLike: (roadmapId: string) => void;
@@ -40,6 +41,12 @@ export const useKaizenStore = create<KaizenState>()(persist((set) => ({
   }),
   setFocusGraph: (key, graph) => set((state) => state.focusGraphs[key] ? state : { focusGraphs: { ...state.focusGraphs, [key]: graph } }),
   updateFocusGraph: (key, graph) => set((state) => ({ focusGraphs: { ...state.focusGraphs, [key]: graph } })),
+  // Local hydrated progress wins on key conflicts; the UI can request a
+  // deliberate conflict resolution later instead of losing offline work.
+  mergeServerFocusGraphs: (graphs) => set((state) => {
+    const merged = { ...graphs, ...state.focusGraphs };
+    return { focusGraphs: merged };
+  }),
   setThemeMode: (mode) => set({ themeMode: mode }),
   toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
   toggleLike: (roadmapId) => set((state) => ({
