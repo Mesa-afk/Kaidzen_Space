@@ -74,6 +74,25 @@ function assertUniqueIds(nodes: TaskNode[]) {
   if (new Set(ids).size !== ids.length) throw new GraphInvariantError("Node IDs must be unique");
 }
 
+function assertParentGraph(nodes: TaskNode[]) {
+  const byId = new Map(nodes.map((node) => [node.id, node]));
+  for (const node of nodes) {
+    if (node.parent_id === node.id) throw new GraphInvariantError("A node cannot be its own parent");
+    if (node.parent_id !== null && !byId.has(node.parent_id)) {
+      throw new GraphInvariantError(`Unknown parent: ${node.parent_id}`);
+    }
+  }
+  for (const node of nodes) {
+    const seen = new Set<string>();
+    let parent = node.parent_id;
+    while (parent !== null) {
+      if (seen.has(parent)) throw new GraphInvariantError("Parent cycle detected");
+      seen.add(parent);
+      parent = byId.get(parent)!.parent_id;
+    }
+  }
+}
+
 /** Replaces every incoming temporary ID and atomically rewrites dependency/parent references. */
 export function replaceTemporaryIds(
   incoming: TaskNode[],
@@ -98,6 +117,7 @@ export function replaceTemporaryIds(
     dependencies: node.dependencies.map((id) => idMap.get(id) ?? id),
   }));
   assertUniqueIds([...existing, ...candidate]);
+  assertParentGraph([...existing, ...candidate]);
   const cycle = findCycle([...existing, ...candidate]);
   if (cycle) throw new GraphInvariantError(`Dependency cycle detected: ${cycle.join(" -> ")}`);
   return candidate;
@@ -136,6 +156,7 @@ export function splitTask(
     ...normalizedChildren,
   ];
   assertUniqueIds(candidate);
+  assertParentGraph(candidate);
   const cycle = findCycle(candidate);
   if (cycle) throw new GraphInvariantError(`Dependency cycle detected: ${cycle.join(" -> ")}`);
   return candidate;
