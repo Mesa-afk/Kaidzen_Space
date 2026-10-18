@@ -189,7 +189,8 @@
    ============================================ */
 
 .focus-page {
-  min-height: 100vh;
+  min-height: 100dvh;
+  height: 100dvh;
   padding: var(--space-xl);
   background: #fdfdf9;
   color: #2a2d26;
@@ -273,8 +274,12 @@
    ============================================ */
 
 .flow-stage {
-  flex: 1;
+  flex: 1 1 auto;
+  width: 100%;
   min-height: 500px;
+  height: clamp(500px, calc(100dvh - 310px), 760px);
+  min-height: min(500px, calc(100dvh - 220px));
+  max-height: 760px;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -285,6 +290,7 @@
 .flow-stage .react-flow {
   width: 100%;
   height: 100%;
+  min-height: 0;
   background: transparent;
 }
 
@@ -295,6 +301,33 @@
 
 .flow-stage .react-flow__node {
   z-index: 3;
+}
+
+.graph-empty {
+  min-height: 100%;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xl);
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.graph-empty strong {
+  color: var(--text);
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.graph-empty button {
+  margin-top: var(--space-sm);
+  padding: 9px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
 }
 
 .task-node {
@@ -389,6 +422,13 @@
   
   .focus-page {
     padding: var(--space-lg);
+    height: auto;
+    min-height: 100dvh;
+  }
+
+  .flow-stage {
+    height: clamp(430px, calc(100dvh - 300px), 620px);
+    min-height: 430px;
   }
   
   .task-node {

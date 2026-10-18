@@ -286,6 +286,7 @@ export function DayFocus({ roadmapTitle, dayNumber, storageKey, onBack }: { road
   
   const xp = completedLeafXp(graph);
   const pending = graph.filter((task) => task.type === "task" && task.status === "pending").length;
+  const graphMissing = graph.length === 0;
   
   return (
     <section className="focus-page">
@@ -326,24 +327,32 @@ export function DayFocus({ roadmapTitle, dayNumber, storageKey, onBack }: { road
         </div>
       )}
       
-      <div className="flow-stage">
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          fitView
-          fitViewOptions={{ padding: 0.22, maxZoom: 1 }}
-          minZoom={0.35}
-          maxZoom={1.2}
-          nodesDraggable={false}
-          nodesConnectable={false}
-          elementsSelectable={false}
-          proOptions={{ hideAttribution: true }}
-        >
-          <Background color="#dfe6d8" gap={22} size={1} />
-          <Controls showInteractive={false} />
-        </ReactFlow>
+      <div className="flow-stage" data-testid="task-graph" data-node-count={nodes.length}>
+        {graphMissing ? (
+          <div className="graph-empty" role="alert">
+            <strong>Не удалось восстановить задачи этого дня</strong>
+            <span>Вернись к карте и открой день ещё раз.</span>
+            <button type="button" onClick={onBack}>Вернуться к карте</button>
+          </div>
+        ) : (
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            fitView
+            fitViewOptions={{ padding: 0.22, maxZoom: 1 }}
+            minZoom={0.35}
+            maxZoom={1.2}
+            nodesDraggable={false}
+            nodesConnectable={false}
+            elementsSelectable={false}
+            proOptions={{ hideAttribution: true }}
+          >
+            <Background color="#dfe6d8" gap={22} size={1} />
+            <Controls showInteractive={false} />
+          </ReactFlow>
+        )}
       </div>
       
       {showParticles && (
