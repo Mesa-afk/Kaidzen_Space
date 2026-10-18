@@ -8,8 +8,8 @@ export const roadmapTaskSchema = z.object({
   title: z.string().trim().min(1).max(240),
   duration_minutes: z.number().int().min(1).max(60),
   xp_weight: z.number().int().min(0).max(100),
-  dependencies: z.array(z.string()),
-});
+  dependencies: z.array(z.string()).max(100),
+}).strict();
 
 export const roadmapDaySchema = z.object({
   day_number: z.number().int().min(1),
@@ -40,12 +40,12 @@ export const roadmapResponseSchema = z.object({
 export const generateRequestSchema = z.object({
   topic: z.string().trim().min(2).max(160),
   level: z.string().trim().min(2).max(100),
-});
+}).strict();
 
 export const splitRequestSchema = z.object({
   task: roadmapTaskSchema.extend({ type: z.literal("task"), status: z.literal("pending") }),
   graph: z.array(roadmapTaskSchema).max(100).default([]),
-});
+}).strict();
 
 export const splitResponseSchema = z.object({ tasks: z.array(roadmapTaskSchema).min(2).max(5) });
 
