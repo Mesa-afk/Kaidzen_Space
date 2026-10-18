@@ -1,0 +1,89 @@
+- generic [active] [ref=f10e1]:
+  - main [ref=f10e2]:
+    - complementary [ref=f10e3]:
+      - link "k. kaizenspace" [ref=f10e4] [cursor=pointer]:
+        - /url: "#"
+        - generic [ref=f10e5]: k.
+        - generic [ref=f10e6]: kaizenspace
+      - generic [ref=f10e7]: ТВОЁ ПРОСТРАНСТВО
+      - button "◫ Репозиторий 08" [ref=f10e185] [cursor=pointer]:
+        - generic [ref=f10e9]: ◫
+        - text: Репозиторий
+        - generic [ref=f10e10]: "08"
+      - button "▤ Моя полка 00" [ref=f10e11] [cursor=pointer]:
+        - generic [ref=f10e12]: ▤
+        - text: Моя полка
+        - generic [ref=f10e13]: "00"
+      - generic [ref=f10e14]:
+        - generic [ref=f10e15]: НАСТРОЙКИ
+        - generic [ref=f10e16]:
+          - button "Переключить на тёмную тему" [ref=f10e186] [cursor=pointer]:
+            - generic [ref=f10e187]: ☀
+          - button "Отключить звук" [ref=f10e189] [cursor=pointer]: 🔊
+        - generic [ref=f10e21]:
+          - text: ✳
+          - paragraph [ref=f10e22]: Не нужно видеть всю лестницу. Достаточно сделать первый шаг.
+          - text: — Мартин Лютер Кинг
+        - generic [ref=f10e23]:
+          - generic [ref=f10e24]: А
+          - generic [ref=f10e25]:
+            - strong [ref=f10e26]: Алекс
+            - generic [ref=f10e27]: Твой темп — правильный
+          - generic [ref=f10e28] [cursor=pointer]: ···
+    - generic [ref=f10e29]:
+      - generic [ref=f10e30]:
+        - generic [ref=f10e31]: Моё пространство / Акварель с нуля
+        - button "? Как это работает" [ref=f10e32] [cursor=pointer]:
+          - text: "?"
+          - generic [ref=f10e33]: Как это работает
+      - generic [ref=f10e190]:
+        - button "← Назад к каталогу" [ref=f10e191] [cursor=pointer]
+        - generic [ref=f10e192]:
+          - generic [ref=f10e193]: 🎨
+          - generic [ref=f10e194]:
+            - generic [ref=f10e195]: Для начинающих
+            - heading "Акварель с нуля" [level=1] [ref=f10e196]
+            - paragraph [ref=f10e197]: От первого мазка до уверенных скетчей природы — спокойно и последовательно.
+            - generic [ref=f10e198]:
+              - button "Добавить на полку ↗" [ref=f10e199] [cursor=pointer]:
+                - text: Добавить на полку
+                - generic [ref=f10e200]: ↗
+              - button "Поделиться ↗" [ref=f10e201] [cursor=pointer]:
+                - text: Поделиться
+                - generic [ref=f10e202]: ↗
+              - button "♡" [ref=f10e203] [cursor=pointer]
+        - generic [ref=f10e204]:
+          - generic [ref=f10e205]:
+            - generic [ref=f10e206]: ПЛАН МАЛЕНЬКИХ ШАГОВ
+            - heading "Путь по дням" [level=2] [ref=f10e207]
+          - generic [ref=f10e208]: 4 дня · в своём темпе
+        - generic [ref=f10e210]:
+          - generic:
+            - 'button "День 1: Знакомство с водой и цветом" [ref=f10e211] [cursor=pointer]'
+            - button "День 1 Знакомство с водой и цветом 33%" [ref=f10e212] [cursor=pointer]:
+              - generic [ref=f10e213]: День 1
+              - heading "Знакомство с водой и цветом" [level=3] [ref=f10e215]
+              - generic [ref=f10e216]: 33%
+          - generic:
+            - 'button "День 2: Первый лист" [ref=f10e221] [cursor=pointer]'
+            - button "День 2 Первый лист 0%" [ref=f10e222] [cursor=pointer]:
+              - generic [ref=f10e223]: День 2
+              - heading "Первый лист" [level=3] [ref=f10e225]
+              - generic [ref=f10e226]: 0%
+          - generic:
+            - 'button "День 3: Глубина и тени" [ref=f10e231] [cursor=pointer]'
+            - button "День 3 Глубина и тени 0%" [ref=f10e232] [cursor=pointer]:
+              - generic [ref=f10e233]: День 3
+              - heading "Глубина и тени" [level=3] [ref=f10e235]
+              - generic [ref=f10e236]: 0%
+          - generic:
+            - 'button "День 4: Простой пейзаж" [ref=f10e241] [cursor=pointer]'
+            - button "День 4 Простой пейзаж 0%" [ref=f10e242] [cursor=pointer]:
+              - generic [ref=f10e243]: День 4
+              - heading "Простой пейзаж" [level=3] [ref=f10e245]
+              - generic [ref=f10e246]: 0%
+      - generic [ref=f10e172]:
+        - generic [ref=f10e173]: Сделано с заботой о твоём темпе ♥
+        - generic [ref=f10e174]: KAIZEN SPACE · 2025
+  - button "Open Next.js Dev Tools" [ref=f10e180] [cursor=pointer]
+  - alert [ref=f10e184]

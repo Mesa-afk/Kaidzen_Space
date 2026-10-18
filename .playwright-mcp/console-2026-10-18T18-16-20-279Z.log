@@ -1,0 +1,4 @@
+[      98ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1bjkg68unqmjx._.js:719
+[     125ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1bjkg68unqmjx._.js:719
+[    2272ms] [WARNING] React Flow: It seems like you are hiding the attribution. Please only do this when you are subscribed to React Flow Pro: https://reactflow.dev/remove-attr
+%cYou can ignore this warning if you are subscribed. font-style: italic; @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_1bjkg68unqmjx._.js:719

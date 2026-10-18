@@ -1,0 +1,174 @@
+/* ============================================
+   OPUS REDESIGN - DESIGN TOKENS
+   Спокойная навигация, выразительная награда
+   ============================================ */
+
+:root {
+  /* === LIGHT THEME (базовая) === */
+  
+  /* Backgrounds */
+  --bg-page: #FDFDFB;
+  --bg-canvas: #F9F8F4;
+  --bg-surface: #FFFFFF;
+  --bg-surface-hover: #F5F4F0;
+  --bg-surface-raised: #FAFAF8;
+  
+  /* Borders */
+  --border-subtle: #E8E6E0;
+  --border-medium: #D4D2CC;
+  --border-strong: #B8B6B0;
+  
+  /* Text */
+  --text-primary: #1A1C1E;
+  --text-secondary: #4A4D50;
+  --text-tertiary: #6E7175;
+  --text-on-accent: #FFFFFF;
+  
+  /* Accent & Interactive */
+  --accent-primary: #6B4E8F;        /* Warm plum */
+  --accent-primary-hover: #5A4078;
+  --accent-primary-active: #4A3262;
+  
+  /* Progress & Success */
+  --progress-base: #8BA888;         /* Sage green */
+  --progress-bg: #EEF4ED;
+  --progress-text: #3D5A3B;
+  
+  /* Reward & Celebration */
+  --reward-gold: #EAA835;           /* Amber gold */
+  --reward-gold-bright: #F7C04A;
+  --reward-glow: #FFF4D6;
+  --reward-text: #5C3A0A;
+  
+  /* Orb evolution colors */
+  --orb-dark: #2A2420;              /* Dark coal */
+  --orb-warm-start: #8B5A3C;        /* Warm amber start */
+  --orb-warm-mid: #C67D3E;          /* Amber middle */
+  --orb-gold: #EAA835;              /* Full gold */
+  --orb-glow: #FFF8E1;
+  
+  /* States */
+  --state-error-bg: #FFF5F5;
+  --state-error-text: #B91C1C;
+  --state-error-border: #FCA5A5;
+  
+  /* Spacing (8px base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  
+  /* Border radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(26, 28, 30, 0.08);
+  --shadow-md: 0 4px 12px rgba(26, 28, 30, 0.10);
+  --shadow-lg: 0 8px 24px rgba(26, 28, 30, 0.12);
+  --shadow-xl: 0 16px 48px rgba(26, 28, 30, 0.16);
+  
+  /* Typography */
+  --font-sans: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), "SF Mono", Consolas, monospace;
+  
+  /* Font sizes */
+  --text-xs: 13px;
+  --text-sm: 14px;
+  --text-base: 15px;
+  --text-lg: 16px;
+  --text-xl: 18px;
+  --text-2xl: 24px;
+  --text-3xl: 30px;
+  --text-4xl: 36px;
+  
+  /* Line heights */
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-reward: 600ms cubic-bezier(0.34, 1.56, 0.64, 1); /* Bounce */
+}
+
+/* === DARK THEME === */
+[data-theme="dark"] {
+  /* Backgrounds */
+  --bg-page: #1A1D23;
+  --bg-canvas: #252930;
+  --bg-surface: #2F333B;
+  --bg-surface-hover: #383D47;
+  --bg-surface-raised: #3A3F4A;
+  
+  /* Borders */
+  --border-subtle: #3A3F4A;
+  --border-medium: #4A5058;
+  --border-strong: #5A6068;
+  
+  /* Text */
+  --text-primary: #F5F5F5;
+  --text-secondary: #C4C7CC;
+  --text-tertiary: #9095A0;
+  --text-on-accent: #FFFFFF;
+  
+  /* Accent */
+  --accent-primary: #A78BBF;        /* Light plum */
+  --accent-primary-hover: #B89ECE;
+  --accent-primary-active: #C9B0DC;
+  
+  /* Progress */
+  --progress-base: #8BA888;
+  --progress-bg: #2A3329;
+  --progress-text: #B8D4B5;
+  
+  /* Reward (stays warm in dark) */
+  --reward-gold: #F7C04A;
+  --reward-gold-bright: #FDD96A;
+  --reward-glow: #4A3A1A;
+  --reward-text: #FFF4D6;
+  
+  /* Orb (same evolution, adjusted for dark bg) */
+  --orb-dark: #1A1410;
+  --orb-warm-start: #8B5A3C;
+  --orb-warm-mid: #C67D3E;
+  --orb-gold: #F7C04A;
+  --orb-glow: #FFF8E1;
+  
+  /* States */
+  --state-error-bg: #3A1F1F;
+  --state-error-text: #FCA5A5;
+  --state-error-border: #7F1D1D;
+}
+
+/* === REDUCED MOTION === */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* === FOCUS VISIBLE === */
+:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* === TABULAR NUMBERS === */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}

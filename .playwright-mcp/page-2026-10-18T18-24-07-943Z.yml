@@ -1,0 +1,163 @@
+- generic [active] [ref=f14e1]:
+  - main [ref=f14e2]:
+    - complementary [ref=f14e3]:
+      - link "k. kaizenspace" [ref=f14e4] [cursor=pointer]:
+        - /url: "#"
+        - generic [ref=f14e5]: k.
+        - generic [ref=f14e6]: kaizenspace
+      - generic [ref=f14e7]: ТВОЁ ПРОСТРАНСТВО
+      - button "◫ Репозиторий 08" [ref=f14e185] [cursor=pointer]:
+        - generic [ref=f14e9]: ◫
+        - text: Репозиторий
+        - generic [ref=f14e10]: "08"
+      - button "▤ Моя полка 00" [ref=f14e11] [cursor=pointer]:
+        - generic [ref=f14e12]: ▤
+        - text: Моя полка
+        - generic [ref=f14e13]: "00"
+      - generic [ref=f14e14]:
+        - generic [ref=f14e15]: НАСТРОЙКИ
+        - generic [ref=f14e16]:
+          - button "Переключить на светлую тему" [ref=f14e190] [cursor=pointer]:
+            - generic [ref=f14e187]: ☾
+          - button "Отключить звук" [ref=f14e189] [cursor=pointer]: 🔊
+        - generic [ref=f14e21]:
+          - text: ✳
+          - paragraph [ref=f14e22]: Не нужно видеть всю лестницу. Достаточно сделать первый шаг.
+          - text: — Мартин Лютер Кинг
+        - generic [ref=f14e23]:
+          - generic [ref=f14e24]: А
+          - generic [ref=f14e25]:
+            - strong [ref=f14e26]: Алекс
+            - generic [ref=f14e27]: Твой темп — правильный
+          - generic [ref=f14e28] [cursor=pointer]: ···
+    - generic [ref=f14e29]:
+      - generic [ref=f14e30]:
+        - generic [ref=f14e31]: Моё пространство / Репозиторий
+        - button "? Как это работает" [ref=f14e32] [cursor=pointer]:
+          - text: "?"
+          - generic [ref=f14e33]: Как это работает
+      - generic [ref=f14e35]:
+        - generic [ref=f14e36]: ТВОЯ ПОЛКА ВОЗМОЖНОСТЕЙ
+        - heading [level=1] [ref=f14e37]:
+          - text: Большие цели.
+          - emphasis [ref=f14e38]: Маленькие шаги.
+        - paragraph [ref=f14e39]: Выбери направление, которое давно хотелось попробовать. Мы поможем двигаться к нему без спешки.
+        - generic [ref=f14e40]:
+          - generic [ref=f14e41]: ✳
+          - text: Начать можно с любого места. И в любой момент.
+      - generic [ref=f14e56]:
+        - generic [ref=f14e57]:
+          - generic [ref=f14e58]:
+            - generic [ref=f14e59]: КОЛЛЕКЦИЯ РОУДМАПОВ
+            - heading "Найди своё направление" [level=2] [ref=f14e60]
+            - paragraph [ref=f14e61]: Подборки от людей, которые уже прошли этот путь.
+          - generic [ref=f14e62]:
+            - button "＋ Создать роудмап" [ref=f14e63] [cursor=pointer]
+            - button "Моя полка ↗" [ref=f14e64] [cursor=pointer]:
+              - text: Моя полка
+              - generic [ref=f14e65]: ↗
+        - generic [ref=f14e66]:
+          - generic [ref=f14e67]:
+            - button "Для тебя ✳" [ref=f14e68] [cursor=pointer]:
+              - text: Для тебя
+              - generic [ref=f14e69]: ✳
+            - button "Популярное" [ref=f14e70] [cursor=pointer]
+            - button "Недавно добавленные" [ref=f14e71] [cursor=pointer]
+          - generic [ref=f14e72]:
+            - generic [ref=f14e73]: ⌕
+            - textbox "⌕" [ref=f14e74]:
+              - /placeholder: Поиск роудмапов...
+        - generic [ref=f14e75]:
+          - button "🎨 Для начинающих Акварель с нуля От первого мазка до уверенных скетчей природы — спокойно и последовательно. Маша Л.🤍 ⭐ 4.9 ♥ 428" [ref=f14e76] [cursor=pointer]:
+            - generic [ref=f14e77]: 🎨
+            - generic [ref=f14e79]:
+              - generic [ref=f14e80]: Для начинающих
+              - heading "Акварель с нуля" [level=3] [ref=f14e81]
+              - paragraph [ref=f14e82]: От первого мазка до уверенных скетчей природы — спокойно и последовательно.
+              - generic [ref=f14e83]:
+                - generic [ref=f14e84]: Маша Л.🤍
+                - generic [ref=f14e85]:
+                  - generic [ref=f14e86]: ⭐ 4.9
+                  - generic [ref=f14e87]: ♥ 428
+          - button "📵 Любой уровень Цифровой детокс 7 дней осознанного использования телефона и соцсетей. Лена Минимал ⭐ 4.9 ♥ 689" [ref=f14e88] [cursor=pointer]:
+            - generic [ref=f14e89]: 📵
+            - generic [ref=f14e91]:
+              - generic [ref=f14e92]: Любой уровень
+              - heading "Цифровой детокс" [level=3] [ref=f14e93]
+              - paragraph [ref=f14e94]: 7 дней осознанного использования телефона и соцсетей.
+              - generic [ref=f14e95]:
+                - generic [ref=f14e96]: Лена Минимал
+                - generic [ref=f14e97]:
+                  - generic [ref=f14e98]: ⭐ 4.9
+                  - generic [ref=f14e99]: ♥ 689
+          - button "🗣️ Начальный Английский каждый день 15 минут в день — от первых слов до уверенного разговора о себе. Alex Chen ⭐ 4.8 ♥ 592" [ref=f14e100] [cursor=pointer]:
+            - generic [ref=f14e101]: 🗣️
+            - generic [ref=f14e103]:
+              - generic [ref=f14e104]: Начальный
+              - heading "Английский каждый день" [level=3] [ref=f14e105]
+              - paragraph [ref=f14e106]: 15 минут в день — от первых слов до уверенного разговора о себе.
+              - generic [ref=f14e107]:
+                - generic [ref=f14e108]: Alex Chen
+                - generic [ref=f14e109]:
+                  - generic [ref=f14e110]: ⭐ 4.8
+                  - generic [ref=f14e111]: ♥ 592
+          - button "🎸 С нуля Первые аккорды на гитаре От настройки струн до твоей первой песни. Без нот и теории. Антон Струнный ⭐ 4.8 ♥ 512" [ref=f14e112] [cursor=pointer]:
+            - generic [ref=f14e113]: 🎸
+            - generic [ref=f14e115]:
+              - generic [ref=f14e116]: С нуля
+              - heading "Первые аккорды на гитаре" [level=3] [ref=f14e117]
+              - paragraph [ref=f14e118]: От настройки струн до твоей первой песни. Без нот и теории.
+              - generic [ref=f14e119]:
+                - generic [ref=f14e120]: Антон Струнный
+                - generic [ref=f14e121]:
+                  - generic [ref=f14e122]: ⭐ 4.8
+                  - generic [ref=f14e123]: ♥ 512
+          - button "🧘 Любой уровень Мягкая йога дома Спокойное движение для тела и ума. Без спешки и сложных поз. Ника Вдох ⭐ 4.7 ♥ 367" [ref=f14e124] [cursor=pointer]:
+            - generic [ref=f14e125]: 🧘
+            - generic [ref=f14e127]:
+              - generic [ref=f14e128]: Любой уровень
+              - heading "Мягкая йога дома" [level=3] [ref=f14e129]
+              - paragraph [ref=f14e130]: Спокойное движение для тела и ума. Без спешки и сложных поз.
+              - generic [ref=f14e131]:
+                - generic [ref=f14e132]: Ника Вдох
+                - generic [ref=f14e133]:
+                  - generic [ref=f14e134]: ⭐ 4.7
+                  - generic [ref=f14e135]: ♥ 367
+          - button "📓 Любой уровень Утренние страницы 3 страницы свободного письма каждое утро. Очищение ума. Юля Пишущая ⭐ 4.7 ♥ 445" [ref=f14e136] [cursor=pointer]:
+            - generic [ref=f14e137]: 📓
+            - generic [ref=f14e139]:
+              - generic [ref=f14e140]: Любой уровень
+              - heading "Утренние страницы" [level=3] [ref=f14e141]
+              - paragraph [ref=f14e142]: 3 страницы свободного письма каждое утро. Очищение ума.
+              - generic [ref=f14e143]:
+                - generic [ref=f14e144]: Юля Пишущая
+                - generic [ref=f14e145]:
+                  - generic [ref=f14e146]: ⭐ 4.7
+                  - generic [ref=f14e147]: ♥ 445
+          - button "🌱 Для начинающих Спокойно о финансах Разобраться в личном бюджете без стресса — шаг за шагом. Дима Финанс ⭐ 4.6 ♥ 234" [ref=f14e148] [cursor=pointer]:
+            - generic [ref=f14e149]: 🌱
+            - generic [ref=f14e151]:
+              - generic [ref=f14e152]: Для начинающих
+              - heading "Спокойно о финансах" [level=3] [ref=f14e153]
+              - paragraph [ref=f14e154]: Разобраться в личном бюджете без стресса — шаг за шагом.
+              - generic [ref=f14e155]:
+                - generic [ref=f14e156]: Дима Финанс
+                - generic [ref=f14e157]:
+                  - generic [ref=f14e158]: ⭐ 4.6
+                  - generic [ref=f14e159]: ♥ 234
+          - button "🪴 Для начинающих Уход за комнатными растениями Научиться понимать, что нужно твоим зелёным друзьям. Катя Ботаник ⭐ 4.5 ♥ 298" [ref=f14e160] [cursor=pointer]:
+            - generic [ref=f14e161]: 🪴
+            - generic [ref=f14e163]:
+              - generic [ref=f14e164]: Для начинающих
+              - heading "Уход за комнатными растениями" [level=3] [ref=f14e165]
+              - paragraph [ref=f14e166]: Научиться понимать, что нужно твоим зелёным друзьям.
+              - generic [ref=f14e167]:
+                - generic [ref=f14e168]: Катя Ботаник
+                - generic [ref=f14e169]:
+                  - generic [ref=f14e170]: ⭐ 4.5
+                  - generic [ref=f14e171]: ♥ 298
+      - generic [ref=f14e172]:
+        - generic [ref=f14e173]: Сделано с заботой о твоём темпе ♥
+        - generic [ref=f14e174]: KAIZEN SPACE · 2025
+  - button "Open Next.js Dev Tools" [ref=f14e180] [cursor=pointer]
+  - alert [ref=f14e184]

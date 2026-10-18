@@ -1,0 +1,37 @@
+{
+  "mcp": {
+    "servers": {
+      "playwright": {
+        "type": "local",
+        "command": [
+          "npx",
+          "-y",
+          "@playwright/mcp@latest"
+        ]
+      },
+      "playwright-local": {
+        "type": "local",
+        "command": [
+          "npx",
+          "-y",
+          "@playwright/mcp@latest",
+          "--headless",
+          "--executable-path",
+          "/home/al/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome"
+        ]
+      },
+      "playwright-local-ns": {
+        "type": "local",
+        "command": [
+          "npx",
+          "-y",
+          "@playwright/mcp@latest",
+          "--headless",
+          "--no-sandbox",
+          "--executable-path",
+          "/home/al/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome"
+        ]
+      }
+    }
+  }
+}

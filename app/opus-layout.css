@@ -1,0 +1,255 @@
+/* ============================================
+   OPUS REDESIGN - LAYOUT
+   Sidebar navigation, main shell
+   ============================================ */
+
+.opus-shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-page);
+}
+
+/* === SIDEBAR === */
+.opus-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-subtle);
+  padding: var(--space-6);
+  transition: all var(--transition-base);
+}
+
+/* Brand */
+.opus-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-bottom: var(--space-6);
+  margin-bottom: var(--space-6);
+  border-bottom: 1px solid var(--border-subtle);
+  text-decoration: none;
+  color: var(--text-primary);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  transition: opacity var(--transition-fast);
+}
+
+.opus-brand:hover {
+  opacity: 0.8;
+}
+
+.opus-brand-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: var(--accent-primary);
+  color: var(--text-on-accent);
+  border-radius: var(--radius-md);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.opus-brand-text {
+  font-size: var(--text-xl);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.opus-brand-light {
+  font-weight: 400;
+  opacity: 0.6;
+}
+
+/* Navigation */
+.opus-nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.opus-nav-section {
+  margin-bottom: var(--space-4);
+}
+
+.opus-nav-label {
+  padding: 0 var(--space-3);
+  margin-bottom: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+}
+
+.opus-nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.opus-nav-item:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.opus-nav-item.active {
+  background: var(--accent-primary);
+  color: var(--text-on-accent);
+}
+
+.opus-nav-item-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+/* Profile section at bottom */
+.opus-profile-section {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.opus-profile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-hover);
+  margin-bottom: var(--space-3);
+}
+
+.opus-profile-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: var(--accent-primary);
+  color: var(--text-on-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: var(--text-lg);
+  flex-shrink: 0;
+}
+
+.opus-profile-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.opus-profile-name {
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.opus-profile-xp {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.opus-settings-row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.opus-settings-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2);
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.opus-settings-btn:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-medium);
+  color: var(--text-primary);
+}
+
+/* === MAIN CONTENT === */
+.opus-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+.opus-content {
+  flex: 1;
+  padding: var(--space-8) var(--space-10);
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* === MOBILE === */
+@media (max-width: 768px) {
+  .opus-shell {
+    flex-direction: column;
+  }
+  
+  .opus-sidebar {
+    width: 100%;
+    padding: var(--space-4);
+    border-right: none;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  
+  .opus-nav {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+  
+  .opus-nav-section {
+    margin-bottom: 0;
+  }
+  
+  .opus-nav-label {
+    display: none;
+  }
+  
+  .opus-nav-item {
+    white-space: nowrap;
+  }
+  
+  .opus-profile-section {
+    border-top: none;
+    padding-top: 0;
+    margin-top: var(--space-4);
+  }
+  
+  .opus-content {
+    padding: var(--space-6) var(--space-4);
+  }
+}

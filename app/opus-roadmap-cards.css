@@ -1,0 +1,281 @@
+/* ============================================
+   OPUS REDESIGN - ROADMAP CARDS
+   Thematic, expressive, interesting cards
+   ============================================ */
+
+/* === SECTION HEADER === */
+.opus-section-header {
+  margin-bottom: var(--space-8);
+}
+
+.opus-section-title {
+  font-size: var(--text-3xl);
+  font-weight: 600;
+  margin-bottom: var(--space-3);
+  color: var(--text-primary);
+}
+
+.opus-section-subtitle {
+  font-size: var(--text-lg);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+/* === CARDS GRID === */
+.opus-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-6);
+  margin-top: var(--space-8);
+}
+
+/* === ROADMAP CARD === */
+.opus-roadmap-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  min-height: 320px;
+}
+
+.opus-roadmap-card:hover {
+  border-color: var(--border-medium);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+}
+
+.opus-roadmap-card:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* Card visual header - thematic illustration area */
+.opus-card-visual {
+  position: relative;
+  width: 100%;
+  height: 140px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.opus-card-visual svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Card content */
+.opus-card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-5);
+  gap: var(--space-3);
+}
+
+.opus-card-title {
+  font-size: var(--text-xl);
+  font-weight: 600;
+  line-height: var(--leading-snug);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.opus-card-description {
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--text-secondary);
+  flex: 1;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+
+/* Card footer meta */
+.opus-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-subtle);
+  margin-top: auto;
+}
+
+.opus-card-meta-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex: 1;
+  min-width: 0;
+}
+
+.opus-card-author {
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.opus-card-level {
+  font-size: var(--text-xs);
+  padding: var(--space-1) var(--space-2);
+  background: var(--bg-surface-hover);
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.opus-card-meta-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.opus-card-stat {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Progress indicator for shelf cards */
+.opus-card-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--border-subtle);
+}
+
+.opus-card-progress-fill {
+  height: 100%;
+  background: var(--progress-base);
+  transition: width var(--transition-slow);
+}
+
+/* Completed state */
+.opus-roadmap-card.completed .opus-card-visual {
+  opacity: 0.8;
+}
+
+.opus-roadmap-card.completed .opus-card-title::after {
+  content: " ✓";
+  color: var(--progress-base);
+}
+
+/* === FILTER BAR === */
+.opus-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.opus-search-input {
+  flex: 1;
+  min-width: 240px;
+}
+
+.opus-sort-tabs {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-1);
+  background: var(--bg-surface-hover);
+  border-radius: var(--radius-md);
+}
+
+.opus-sort-tab {
+  padding: var(--space-2) var(--space-4);
+  background: transparent;
+  border: none;
+  border-radius: calc(var(--radius-md) - 2px);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.opus-sort-tab:hover {
+  color: var(--text-primary);
+}
+
+.opus-sort-tab.active {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* === EMPTY STATE === */
+.opus-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-16) var(--space-8);
+  text-align: center;
+  gap: var(--space-4);
+}
+
+.opus-empty-icon {
+  font-size: 64px;
+  opacity: 0.3;
+}
+
+.opus-empty-title {
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.opus-empty-text {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  max-width: 400px;
+  line-height: var(--leading-relaxed);
+}
+
+/* === MOBILE === */
+@media (max-width: 768px) {
+  .opus-cards-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+  
+  .opus-roadmap-card {
+    min-height: 280px;
+  }
+  
+  .opus-card-visual {
+    height: 120px;
+  }
+  
+  .opus-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .opus-search-input {
+    width: 100%;
+  }
+  
+  .opus-sort-tabs {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

@@ -1,0 +1,85 @@
+- generic [active] [ref=f4e1]:
+  - button "Open Next.js Dev Tools" [ref=f4e180] [cursor=pointer]
+  - alert [ref=f4e184]
+  - generic [ref=f4e251]:
+    - button "← Назад к дням" [ref=f4e252] [cursor=pointer]
+    - generic [ref=f4e253]:
+      - generic [ref=f4e254]:
+        - generic [ref=f4e255]: АКВАРЕЛЬ С НУЛЯ
+        - heading [level=1] [ref=f4e256]:
+          - text: Фокус дня
+          - emphasis [ref=f4e257]: ·
+          - text: "1"
+        - paragraph [ref=f4e258]: Только сегодняшний шаг. Остальное может подождать.
+      - generic [ref=f4e259]:
+        - 'img "Энергия дня: 33 процентов" [ref=f4e260]':
+          - generic:
+            - text: "33"
+            - generic: "%"
+        - generic [ref=f4e269]: Осталось 4 шагов
+    - generic [ref=f4e270]:
+      - generic [ref=f4e271]: ✳
+      - text: Закрывай шаг за шагом — следующие задачи откроются сами.
+    - application [ref=f4e273]:
+      - generic [ref=f4e275]:
+        - generic:
+          - generic:
+            - img:
+              - group "Edge from ca747149-fd8e-4173-84a8-10f488bd797c to bf767f0b-9ce9-4935-8548-16d174b1fbcf"
+            - img:
+              - group "Edge from ca747149-fd8e-4173-84a8-10f488bd797c to 343791f3-0066-4a6d-89bb-c234f2141fd4"
+            - img:
+              - group "Edge from ca747149-fd8e-4173-84a8-10f488bd797c to 37a79fc2-86a3-459d-ae4d-2e29bfadcea6"
+            - img:
+              - group "Edge from 343791f3-0066-4a6d-89bb-c234f2141fd4 to 37a79fc2-86a3-459d-ae4d-2e29bfadcea6"
+            - img:
+              - group "Edge from ca747149-fd8e-4173-84a8-10f488bd797c to 747849b2-ab4b-46f5-a67f-bd93ea662acd"
+            - img:
+              - group "Edge from 37a79fc2-86a3-459d-ae4d-2e29bfadcea6 to 747849b2-ab4b-46f5-a67f-bd93ea662acd"
+            - img:
+              - group "Edge from bf767f0b-9ce9-4935-8548-16d174b1fbcf to 343791f3-0066-4a6d-89bb-c234f2141fd4"
+          - generic:
+            - group [ref=f4e276]:
+              - generic [ref=f4e279]:
+                - generic [ref=f4e280]:
+                  - generic [ref=f4e281]: Подготовить палитру и бумагу
+                  - generic [ref=f4e282]: ◷ 5 минут
+                - generic [ref=f4e283]:
+                  - button "Настройки задачи" [ref=f4e285] [cursor=pointer]: ···
+                  - button "Задача выполнена" [disabled] [ref=f4e286]
+            - group [ref=f4e290]:
+              - generic [ref=f4e293]:
+                - generic [ref=f4e294]:
+                  - generic [ref=f4e295]: Нарисовать градиент от светлого к тёмному
+                  - generic [ref=f4e296]: ◷ 5 минут
+                - generic [ref=f4e297]:
+                  - button "Настройки задачи" [ref=f4e299] [cursor=pointer]: ···
+                  - button "Отметить выполненной" [disabled] [ref=f4e300]
+            - group [ref=f4e304]:
+              - generic [ref=f4e307]:
+                - generic [ref=f4e308]:
+                  - generic [ref=f4e309]: "Подготовиться: нарисовать градиент от светлого к тёмному"
+                  - generic [ref=f4e310]: ◷ 2 минут
+                - generic [ref=f4e311]:
+                  - button "Настройки задачи" [ref=f4e313] [cursor=pointer]: ···
+                  - button "Отметить выполненной" [ref=f4e314] [cursor=pointer]
+            - group [ref=f4e318]:
+              - generic [ref=f4e321]:
+                - generic [ref=f4e322]:
+                  - generic [ref=f4e323]: "Выполнить основную часть: нарисовать градиент от светлого к тёмному"
+                  - generic [ref=f4e324]: ◷ 2 минут
+                - generic [ref=f4e325]:
+                  - button "Настройки задачи" [ref=f4e327] [cursor=pointer]: ···
+                  - button "Отметить выполненной" [ref=f4e328] [cursor=pointer]
+            - group [ref=f4e332]:
+              - generic [ref=f4e335]:
+                - generic [ref=f4e336]:
+                  - generic [ref=f4e337]: "Завершить: нарисовать градиент от светлого к тёмному"
+                  - generic [ref=f4e338]: ◷ 2 минут
+                - generic [ref=f4e339]:
+                  - button "Настройки задачи" [ref=f4e341] [cursor=pointer]: ···
+                  - button "Отметить выполненной" [ref=f4e342] [cursor=pointer]
+      - generic "Control Panel" [ref=f4e346]:
+        - button "Zoom In" [ref=f4e347] [cursor=pointer]
+        - button "Zoom Out" [ref=f4e350] [cursor=pointer]
+        - button "Fit View" [ref=f4e353] [cursor=pointer]

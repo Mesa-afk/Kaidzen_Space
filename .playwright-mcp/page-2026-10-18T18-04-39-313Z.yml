@@ -1,0 +1,49 @@
+- generic [ref=f2e1]:
+  - button "Open Next.js Dev Tools" [ref=f2e180] [cursor=pointer]
+  - alert [ref=f2e184]
+  - generic [ref=f2e262]:
+    - button "← Назад к дням" [ref=f2e263] [cursor=pointer]
+    - generic [ref=f2e264]:
+      - generic [ref=f2e265]:
+        - generic [ref=f2e266]: АКВАРЕЛЬ С НУЛЯ
+        - heading [level=1] [ref=f2e267]:
+          - text: Фокус дня
+          - emphasis [ref=f2e268]: ·
+          - text: "1"
+        - paragraph [ref=f2e269]: Только сегодняшний шаг. Остальное может подождать.
+      - generic [ref=f2e270]:
+        - 'img "Энергия дня: 33 процентов" [ref=f2e312]':
+          - generic:
+            - text: "33"
+            - generic: "%"
+        - generic [ref=f2e280]: Осталось 2 шагов
+    - generic [ref=f2e281]:
+      - generic [ref=f2e282]: ✳
+      - text: Закрывай шаг за шагом — следующие задачи откроются сами.
+    - application [ref=f2e284]:
+      - generic [ref=f2e286]:
+        - generic:
+          - generic:
+            - img:
+              - group "Edge from ca747149-fd8e-4173-84a8-10f488bd797c to bf767f0b-9ce9-4935-8548-16d174b1fbcf"
+          - generic:
+            - group [ref=f2e287]:
+              - generic [ref=f2e290]:
+                - generic [ref=f2e291]:
+                  - generic [ref=f2e292]: Подготовить палитру и бумагу
+                  - generic [ref=f2e293]: ◷ 5 минут
+                - generic [ref=f2e294]:
+                  - button "Настройки задачи" [ref=f2e296] [cursor=pointer]: ···
+                  - button "Задача выполнена" [disabled] [ref=f2e313]
+            - group [active] [ref=f2e314]:
+              - generic [ref=f2e317]:
+                - generic [ref=f2e318]:
+                  - generic [ref=f2e319]: Нарисовать градиент от светлого к тёмному
+                  - generic [ref=f2e320]: ◷ 5 минут
+                - generic [ref=f2e321]:
+                  - button "Настройки задачи" [ref=f2e323] [cursor=pointer]: ···
+                  - button "Отметить выполненной" [ref=f2e324] [cursor=pointer]
+      - generic "Control Panel" [ref=f2e301]:
+        - button "Zoom In" [ref=f2e302] [cursor=pointer]
+        - button "Zoom Out" [ref=f2e305] [cursor=pointer]
+        - button "Fit View" [ref=f2e308] [cursor=pointer]
