@@ -56,9 +56,9 @@
 }
 
 .metro-dot.current {
-  background: var(--warm-yellow);
-  border-color: var(--warm-yellow);
-  box-shadow: 0 0 0 4px var(--warm-yellow-light);
+  background: var(--reward-bg);
+  border-color: var(--reward-bg);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--reward-bg) 35%, transparent);
   /* No animation on dot itself, only on pulse-ring child */
 }
 
@@ -121,8 +121,8 @@
 }
 
 .metro-card.current {
-  background: var(--warm-yellow-light);
-  border-color: var(--warm-yellow);
+  background: color-mix(in srgb, var(--reward-bg) 22%, var(--surface));
+  border-color: var(--reward-bg);
   border-width: 2px;
 }
 
@@ -192,8 +192,8 @@
   min-height: 100dvh;
   height: 100dvh;
   padding: var(--space-xl);
-  background: #fdfdf9;
-  color: #2a2d26;
+  background: var(--bg);
+  color: var(--text);
   display: flex;
   flex-direction: column;
 }
@@ -336,7 +336,7 @@
   padding: 0;
   border-radius: var(--radius-lg);
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--surface);
   backdrop-filter: blur(14px);
   border: 1px solid #dfe6d8;
   box-shadow:
@@ -382,9 +382,9 @@
 }
 
 .task-node.is-completing {
-  border-color: var(--warm-yellow);
+  border-color: var(--reward-bg);
   box-shadow: 
-    0 0 0 4px var(--warm-yellow-light),
+    0 0 0 4px color-mix(in srgb, var(--reward-bg) 35%, transparent),
     0 8px 32px rgba(240, 201, 78, 0.4);
 }
 
@@ -438,7 +438,7 @@
 }
 
 .task-node.is-completed .task-title {
-  color: var(--sage-dark);
+  color: var(--completed-text);
 }
 
 .task-duration {

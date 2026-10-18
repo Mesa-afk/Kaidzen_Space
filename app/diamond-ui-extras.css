@@ -141,6 +141,15 @@
   background: linear-gradient(135deg, #b8e6c4 0%, #82c996 100%);
 }
 
+[data-theme="dark"] .detail-hero.peach { background: linear-gradient(135deg, #67483b 0%, #805342 100%); }
+[data-theme="dark"] .detail-hero.lavender { background: linear-gradient(135deg, #4d4860 0%, #62567b 100%); }
+[data-theme="dark"] .detail-hero.mint { background: linear-gradient(135deg, #3c5946 0%, #4d7659 100%); }
+[data-theme="dark"] .detail-hero.blue { background: linear-gradient(135deg, #3b5368 0%, #4c6e87 100%); }
+[data-theme="dark"] .detail-hero.amber { background: linear-gradient(135deg, #66502c 0%, #80662f 100%); }
+[data-theme="dark"] .detail-hero.neutral { background: linear-gradient(135deg, #41433e 0%, #55574f 100%); }
+[data-theme="dark"] .detail-hero.rose { background: linear-gradient(135deg, #633f45 0%, #814f58 100%); }
+[data-theme="dark"] .detail-hero.green { background: linear-gradient(135deg, #3d5e45 0%, #4d7958 100%); }
+
 .detail-emoji {
   font-size: 72px;
   flex-shrink: 0;
@@ -152,13 +161,13 @@
   font-size: 36px;
   font-weight: 400;
   margin: var(--space-sm) 0;
-  color: rgba(0, 0, 0, 0.85);
+  color: var(--text);
 }
 
 .detail-hero p {
   font-size: 15px;
   line-height: 1.6;
-  color: rgba(0, 0, 0, 0.7);
+  color: var(--text-muted);
   margin: var(--space-sm) 0 0;
 }
 
