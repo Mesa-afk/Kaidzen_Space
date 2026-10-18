@@ -41,11 +41,12 @@
   border-radius: 50%;
   background: var(--surface);
   border: 4px solid var(--border-strong);
-  transition: all var(--transition-base);
+  transition: background var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base);
   display: grid;
   place-items: center;
   box-shadow: 0 0 0 6px var(--surface), 0 3px 12px rgba(69, 85, 58, .15);
   cursor: pointer;
+  position: relative;
 }
 
 .metro-dot.completed {
@@ -58,7 +59,7 @@
   background: var(--warm-yellow);
   border-color: var(--warm-yellow);
   box-shadow: 0 0 0 4px var(--warm-yellow-light);
-  animation: pulse-dot 2s ease-in-out infinite;
+  /* No animation on dot itself, only on pulse-ring child */
 }
 
 .check-icon {
@@ -74,15 +75,7 @@
   border-radius: 50%;
   border: 2px solid var(--warm-yellow);
   animation: pulse-ring 2s ease-out infinite;
-}
-
-@keyframes pulse-dot {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
+  pointer-events: none;
 }
 
 @keyframes pulse-ring {
@@ -282,7 +275,6 @@
 .flow-stage {
   flex: 1;
   min-height: 500px;
-  height: 60vh;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;

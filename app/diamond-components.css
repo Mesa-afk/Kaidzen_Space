@@ -61,91 +61,17 @@
   font-size: 16px;
 }
 
-.hero-art {
-  position: relative;
+.hero-meadow {
+  width: 100%;
   height: 100%;
   min-height: 320px;
-  display: grid;
-  place-items: center;
+  transition: opacity 0.3s ease;
 }
 
-.sun {
-  width: 160px;
-  height: 160px;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--warm-yellow) 0%, var(--warm-yellow-light) 100%);
-  box-shadow: 0 0 80px var(--warm-yellow);
-  position: absolute;
-  top: 15%;
-  animation: gentle-float 8s ease-in-out infinite;
-}
-
-.hill {
-  position: absolute;
-  width: 200%;
-  height: 200px;
-  border-radius: 50%;
-  bottom: -100px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.hill-back {
-  background: var(--sage-light);
-  opacity: 0.5;
-  bottom: -70px;
-}
-
-.hill-front {
-  background: var(--sage);
-  opacity: 0.7;
-}
-
-.art-path {
-  position: absolute;
-  width: 4px;
-  height: 70%;
-  background: linear-gradient(to bottom, transparent, var(--sage));
-  bottom: 0;
-  border-radius: 2px;
-  opacity: 0.4;
-}
-
-.art-spark {
-  position: absolute;
-  color: var(--warm-yellow);
-  font-size: 28px;
-  animation: sparkle 3s ease-in-out infinite;
-}
-
-.spark-one {
-  top: 25%;
-  right: 25%;
-  animation-delay: 0s;
-}
-
-.spark-two {
-  top: 55%;
-  left: 20%;
-  animation-delay: 1.5s;
-}
-
-.art-figure {
-  position: absolute;
-  bottom: 25%;
-  font-size: 42px;
-  color: var(--sage-dark);
-  animation: gentle-float 6s ease-in-out infinite reverse;
-}
-
-@keyframes gentle-float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-12px); }
-}
-
-@keyframes sparkle {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.2); }
+@media (prefers-reduced-motion: reduce) {
+  .hero-meadow {
+    transition: none;
+  }
 }
 
 /* ============================================

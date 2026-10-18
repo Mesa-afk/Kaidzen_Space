@@ -9,6 +9,7 @@ import { DayFocus } from "@/components/day-focus";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SoundToggle } from "@/components/sound-toggle";
 import { DayMetroLine } from "@/components/day-metro-line";
+import { HeroMeadow } from "@/components/hero-meadow";
 import { distributeXp, type TaskNode } from "@/lib/graph";
 import { mockGenerateRoadmap } from "@/lib/mock-generate";
 import { generateRoadmapApi, isBackendEnabled } from "@/lib/api-client";
@@ -148,7 +149,8 @@ export default function Home() {
     const storageKey = `${roadmap.id}:${dayNumber}`;
     const day = roadmap.days.find((item) => item.dayNumber === dayNumber);
     
-    if (day && !focusGraphs[storageKey]) {
+    // Initialize graph if it doesn't exist OR is empty (possible corruption)
+    if (day && (!focusGraphs[storageKey] || focusGraphs[storageKey].length === 0)) {
       const weights = distributeXp(100, day.tasks.length);
       const graph: TaskNode[] = day.tasks.map((title, index) => ({
         id: crypto.randomUUID(),
@@ -401,15 +403,7 @@ export default function Home() {
                 </div>
               </div>
               
-              <div className="hero-art" aria-hidden="true">
-                <div className="sun"></div>
-                <div className="hill hill-back"></div>
-                <div className="hill hill-front"></div>
-                <div className="art-path"></div>
-                <span className="art-spark spark-one">✳</span>
-                <span className="art-spark spark-two">✦</span>
-                <span className="art-figure">✿</span>
-              </div>
+              <HeroMeadow />
             </section>
 
             {/* Catalog */}
