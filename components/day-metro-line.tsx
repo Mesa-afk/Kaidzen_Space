@@ -11,43 +11,64 @@ type DayMetroLineProps = {
 };
 
 export function DayMetroLine({ days, completedDays = [], currentDay, dayProgress = {}, onDayClick }: DayMetroLineProps) {
+  // Calculate container height based on day count: 140px per day minimum
+  const containerHeight = Math.max(600, days.length * 140);
+  const stationPositions = days.map((_, index) => ({
+    top: index === 0 ? 70 : (index / (days.length - 1)) * (containerHeight - 140) + 70,
+  }));
+  
   return (
-    <div className="metro-container">
-      <svg className="metro-line-svg" viewBox="0 0 100 800" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="line-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="var(--sage)" stopOpacity="0.6" />
-            <stop offset="100%" stopColor="var(--sage)" stopOpacity="0.3" />
-          </linearGradient>
-        </defs>
-        
-        {/* Wavy metro line */}
-        <path
-          d={generateMetroPath(days.length)}
-          stroke="url(#line-gradient)"
-          strokeWidth="4"
-          fill="none"
+    <div className="metro-container" style={{ minHeight: `${containerHeight}px` }}>
+      {/* Central vertical line */}
+      <svg 
+        className="metro-line-svg" 
+        style={{ 
+          position: "absolute",
+          left: "50%",
+          top: 0,
+          width: "3px",
+          height: "100%",
+          transform: "translateX(-50%)",
+          overflow: "visible",
+          pointerEvents: "none",
+        }}
+      >
+        <line
+          x1="1.5"
+          y1="0"
+          x2="1.5"
+          y2={containerHeight}
+          stroke="var(--sage)"
+          strokeWidth="3"
+          strokeOpacity="0.35"
           strokeLinecap="round"
           className="metro-path"
         />
       </svg>
       
       {/* Day stations */}
-      <div className="metro-stations">
+      <div className="metro-stations" style={{ minHeight: `${containerHeight}px` }}>
         {days.map((day, index) => {
           const isCompleted = completedDays.includes(day.dayNumber);
           const isCurrent = currentDay === day.dayNumber;
           const progress = dayProgress[day.dayNumber] ?? 0;
-          const offsetLeft = index % 2 === 0 ? "20%" : "80%";
           const cardAlign = index % 2 === 0 ? "left" : "right";
+          const topPosition = stationPositions[index].top;
           
           return (
             <div
               key={day.dayNumber}
               className="metro-station"
               style={{
-                top: `${(index / Math.max(1, days.length - 1)) * 100}%`,
-                left: offsetLeft,
+                position: "absolute",
+                top: `${topPosition}px`,
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "auto",
               }}
             >
               {/* Station dot */}
@@ -55,6 +76,13 @@ export function DayMetroLine({ days, completedDays = [], currentDay, dayProgress
                 className={`metro-dot ${isCompleted ? "completed" : ""} ${isCurrent ? "current" : ""}`}
                 onClick={() => onDayClick(day.dayNumber)}
                 aria-label={`День ${day.dayNumber}: ${day.title}`}
+                style={{
+                  position: "absolute",
+                  left: "50%",
+                  top: "50%",
+                  transform: "translate(-50%, -50%)",
+                  zIndex: 10,
+                }}
               >
                 {isCompleted && <span className="check-icon">✓</span>}
                 {isCurrent && !isCompleted && <span className="pulse-ring" />}
@@ -64,6 +92,13 @@ export function DayMetroLine({ days, completedDays = [], currentDay, dayProgress
               <button
                 className={`metro-card ${cardAlign} ${isCompleted ? "completed" : ""} ${isCurrent ? "current" : ""}`}
                 onClick={() => onDayClick(day.dayNumber)}
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  [cardAlign === "left" ? "right" : "left"]: "calc(50% + 50px)",
+                  zIndex: 5,
+                }}
               >
                 <div className="metro-card-header">
                   <span className="day-number">День {day.dayNumber}</span>
@@ -102,31 +137,4 @@ export function DayMetroLine({ days, completedDays = [], currentDay, dayProgress
       </div>
     </div>
   );
-}
-
-/**
- * Generate a smooth curved path that resembles a metro line
- */
-function generateMetroPath(dayCount: number): string {
-  const segments: string[] = [];
-  const points = Math.max(2, dayCount);
-  
-  for (let i = 0; i < points; i++) {
-    const y = (i / (points - 1)) * 800;
-    // Alternate between left and right with smooth curves
-    const x = 50 + Math.sin(i * 0.8) * 15;
-    
-    if (i === 0) {
-      segments.push(`M ${x} ${y}`);
-    } else {
-      const prevY = ((i - 1) / (points - 1)) * 800;
-      const prevX = 50 + Math.sin((i - 1) * 0.8) * 15;
-      const midY = (prevY + y) / 2;
-      
-      // Use quadratic bezier curve for smooth waves
-      segments.push(`Q ${prevX} ${midY}, ${x} ${y}`);
-    }
-  }
-  
-  return segments.join(" ");
 }

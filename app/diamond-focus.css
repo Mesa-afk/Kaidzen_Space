@@ -33,78 +33,19 @@
 .metro-stations {
   position: relative;
   z-index: 1;
-  min-height: 750px;
-}
-
-.metro-station {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  gap: var(--space-lg);
-  transform: translateY(-50%);
-}
-
-/* Keep every station physically attached to the central route. */
-.metro-station {
-  left: 50% !important;
-  width: 100%;
-  height: 96px;
-  justify-content: center;
-  transform: translate(-50%, -50%);
-}
-
-.metro-station::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 100%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent 0 35%, var(--sage-light) 42% 58%, transparent 65%);
-  opacity: .55;
-  pointer-events: none;
-}
-
-.metro-station .metro-dot {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 26px;
-  height: 26px;
-  border-width: 4px;
-  box-shadow: 0 0 0 6px var(--surface), 0 3px 12px rgba(69, 85, 58, .15);
-}
-
-.metro-station .metro-card {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 2;
-}
-
-.metro-station .metro-card.left {
-  right: calc(50% + 48px);
-  margin: 0;
-}
-
-.metro-station .metro-card.right {
-  left: calc(50% + 48px);
-  margin: 0;
 }
 
 .metro-dot {
-  width: 20px;
-  height: 20px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   background: var(--surface);
-  border: 3px solid var(--border-strong);
-  position: relative;
-  z-index: 2;
-  flex-shrink: 0;
+  border: 4px solid var(--border-strong);
   transition: all var(--transition-base);
   display: grid;
   place-items: center;
+  box-shadow: 0 0 0 6px var(--surface), 0 3px 12px rgba(69, 85, 58, .15);
+  cursor: pointer;
 }
 
 .metro-dot.completed {
@@ -168,17 +109,17 @@
 }
 
 .metro-card:hover {
-  transform: translateX(8px);
   box-shadow: var(--shadow-lg);
   border-color: var(--sage);
+  scale: 1.02;
 }
 
 .metro-card.left {
-  margin-right: var(--space-lg);
+  /* positioned inline */
 }
 
 .metro-card.right {
-  margin-left: var(--space-lg);
+  /* positioned inline */
 }
 
 .metro-card.completed {
@@ -341,7 +282,7 @@
 .flow-stage {
   flex: 1;
   min-height: 500px;
-  max-height: 70vh;
+  height: 60vh;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -449,22 +390,18 @@
 }
 
 @media (max-width: 760px) {
-  .metro-container {
-    min-height: 780px;
-    margin: 0 -8px;
-  }
-
-  .metro-station .metro-card {
+  .metro-card {
     min-width: 220px;
     max-width: 240px;
   }
-
-  .metro-station .metro-card.left {
-    right: calc(50% + 34px);
+  
+  .focus-page {
+    padding: var(--space-lg);
   }
-
-  .metro-station .metro-card.right {
-    left: calc(50% + 34px);
+  
+  .task-node {
+    width: 100%;
+    max-width: 480px;
   }
 }
 
