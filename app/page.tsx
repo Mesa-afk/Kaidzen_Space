@@ -6,16 +6,21 @@ import { type Roadmap } from "@/lib/roadmaps";
 import { useKaizenStore } from "@/lib/store";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { CardVisual } from "@/components/card-visual";
+import { mockGenerateRoadmap } from "@/lib/mock-generate";
+import { generateRoadmapApi, isBackendEnabled } from "@/lib/api-client";
 
 type View = "repository" | "mine";
 type SortMode = "for-you" | "popular" | "recent";
-
-// No longer need category mapping - using emoji from roadmap directly
 
 export default function OpusHomePage() {
   const [view, setView] = useState<View>("repository");
   const [sortMode, setSortMode] = useState<SortMode>("for-you");
   const [query, setQuery] = useState("");
+  const [showCreate, setShowCreate] = useState(false);
+  const [topic, setTopic] = useState("");
+  const [level, setLevel] = useState("");
+  const [generating, setGenerating] = useState(false);
+  const [createError, setCreateError] = useState("");
   
   const hydrated = useHydrated();
   const { myRoadmaps, addRoadmap, themeMode, setThemeMode, soundEnabled, toggleSound, likedRoadmapIds } = useKaizenStore();
@@ -39,6 +44,53 @@ export default function OpusHomePage() {
     roadmap.title.toLowerCase().includes(query.toLowerCase()) ||
     roadmap.description.toLowerCase().includes(query.toLowerCase())
   );
+
+  const generateRoadmap = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setGenerating(true);
+    setCreateError("");
+    
+    try {
+      const generated = isBackendEnabled()
+        ? await generateRoadmapApi(topic, level)
+        : await new Promise<ReturnType<typeof mockGenerateRoadmap>>((resolve) => 
+            setTimeout(() => resolve(mockGenerateRoadmap(topic, level)), 1500)
+          );
+      
+      const id = crypto.randomUUID();
+      const roadmap: Roadmap = {
+        id,
+        sourceId: id,
+        title: generated.project_title,
+        emoji: generated.project_emoji,
+        description: `Путь к цели «${topic}» — маленькими шагами и в своём темпе.`,
+        level,
+        likes: 0,
+        rating: 0,
+        author: "Ты",
+        color: "mint",
+        days: generated.days.map((day) => ({
+          dayNumber: day.day_number,
+          title: `Фокус дня ${day.day_number}`,
+          tasks: day.tasks.filter((task) => task.type === "task").map((task) => task.title),
+        })),
+      };
+      
+      addRoadmap(roadmap);
+      setView("mine");
+      setShowCreate(false);
+      setTopic("");
+      setLevel("");
+    } catch (error) {
+      setCreateError(
+        error instanceof Error 
+          ? error.message 
+          : "Что-то пошло не так. Попробуй ещё раз."
+      );
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   if (!hydrated) {
     return (
@@ -66,20 +118,20 @@ export default function OpusHomePage() {
 
         <nav className="opus-nav">
           <div className="opus-nav-section">
-            <div className="opus-nav-label">Пространство</div>
+            <div className="opus-nav-label">Твоё пространство</div>
             <button
               className={`opus-nav-item ${view === "repository" ? "active" : ""}`}
               onClick={() => setView("repository")}
             >
               <span className="opus-nav-item-icon">🗂</span>
-              Repository
+              Каталог
             </button>
             <button
               className={`opus-nav-item ${view === "mine" ? "active" : ""}`}
               onClick={() => setView("mine")}
             >
               <span className="opus-nav-item-icon">📚</span>
-              My Shelf
+              Моя полка
             </button>
           </div>
         </nav>
@@ -119,7 +171,7 @@ export default function OpusHomePage() {
           {/* Section header */}
           <header className="opus-section-header">
             <h1 className="opus-section-title">
-              {view === "repository" ? "Repository" : "My Shelf"}
+              {view === "repository" ? "Каталог" : "Моя полка"}
             </h1>
             <p className="opus-section-subtitle">
               {view === "repository" 
@@ -129,7 +181,7 @@ export default function OpusHomePage() {
             </p>
           </header>
 
-          {/* Filter bar */}
+          {/* Filter bar and create button */}
           <div className="opus-filter-bar">
             <input
               type="search"
@@ -140,28 +192,110 @@ export default function OpusHomePage() {
             />
             
             {view === "repository" && (
-              <div className="opus-sort-tabs">
-                <button
-                  className={`opus-sort-tab ${sortMode === "for-you" ? "active" : ""}`}
-                  onClick={() => setSortMode("for-you")}
+              <>
+                <div className="opus-sort-tabs">
+                  <button
+                    className={`opus-sort-tab ${sortMode === "for-you" ? "active" : ""}`}
+                    onClick={() => setSortMode("for-you")}
+                  >
+                    Для тебя
+                  </button>
+                  <button
+                    className={`opus-sort-tab ${sortMode === "popular" ? "active" : ""}`}
+                    onClick={() => setSortMode("popular")}
+                  >
+                    Популярные
+                  </button>
+                  <button
+                    className={`opus-sort-tab ${sortMode === "recent" ? "active" : ""}`}
+                    onClick={() => setSortMode("recent")}
+                  >
+                    Новые
+                  </button>
+                </div>
+                
+                <button 
+                  className="btn btn-primary"
+                  onClick={() => setShowCreate(true)}
                 >
-                  Для тебя
+                  + Создать свой
                 </button>
-                <button
-                  className={`opus-sort-tab ${sortMode === "popular" ? "active" : ""}`}
-                  onClick={() => setSortMode("popular")}
-                >
-                  Популярные
-                </button>
-                <button
-                  className={`opus-sort-tab ${sortMode === "recent" ? "active" : ""}`}
-                  onClick={() => setSortMode("recent")}
-                >
-                  Новые
-                </button>
-              </div>
+              </>
             )}
           </div>
+
+          {/* Create roadmap form */}
+          {showCreate && (
+            <div style={{
+              marginBottom: "var(--space-8)",
+              padding: "var(--space-6)",
+              background: "var(--bg-surface)",
+              border: "1px solid var(--border-subtle)",
+              borderRadius: "var(--radius-lg)"
+            }}>
+              <h3 style={{ marginBottom: "var(--space-4)", fontSize: "var(--text-xl)", fontWeight: 600 }}>
+                Создать роудмап
+              </h3>
+              <form onSubmit={generateRoadmap} style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+                <div>
+                  <label htmlFor="topic" style={{ display: "block", marginBottom: "var(--space-2)", fontSize: "var(--text-sm)", fontWeight: 500 }}>
+                    Чему хочешь научиться?
+                  </label>
+                  <input
+                    id="topic"
+                    className="input"
+                    type="text"
+                    value={topic}
+                    onChange={(e) => setTopic(e.target.value)}
+                    placeholder="Например: играть на гитаре, готовить пасту..."
+                    required
+                    disabled={generating}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="level" style={{ display: "block", marginBottom: "var(--space-2)", fontSize: "var(--text-sm)", fontWeight: 500 }}>
+                    Твой уровень
+                  </label>
+                  <select
+                    id="level"
+                    className="input"
+                    value={level}
+                    onChange={(e) => setLevel(e.target.value)}
+                    required
+                    disabled={generating}
+                  >
+                    <option value="">Выбери уровень</option>
+                    <option value="Начальный">Начальный — я никогда этого не делал</option>
+                    <option value="Базовый">Базовый — пробовал, но не уверен</option>
+                    <option value="Средний">Средний — уже есть опыт</option>
+                  </select>
+                </div>
+                {createError && (
+                  <div style={{ padding: "var(--space-3)", background: "var(--state-error-bg)", border: "1px solid var(--state-error-border)", borderRadius: "var(--radius-md)", color: "var(--state-error-text)", fontSize: "var(--text-sm)" }}>
+                    {createError}
+                  </div>
+                )}
+                <div style={{ display: "flex", gap: "var(--space-3)" }}>
+                  <button type="submit" className="btn btn-primary" disabled={generating}>
+                    {generating ? "Создаю..." : "Создать маршрут"}
+                  </button>
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary" 
+                    onClick={() => {
+                      setShowCreate(false);
+                      setTopic("");
+                      setLevel("");
+                      setCreateError("");
+                    }}
+                    disabled={generating}
+                  >
+                    Отмена
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
 
           {/* Cards grid */}
           {visible.length === 0 ? (
@@ -175,12 +309,12 @@ export default function OpusHomePage() {
               <p className="opus-empty-text">
                 {view === "repository" 
                   ? "Попробуй изменить запрос или сбросить фильтры."
-                  : "Сохрани маршрут из Repository, чтобы начать своё путешествие."
+                  : "Сохрани маршрут из каталога, чтобы начать своё путешествие."
                 }
               </p>
               {view === "mine" && (
                 <button className="btn btn-primary" onClick={() => setView("repository")}>
-                  Перейти в Repository
+                  Перейти в каталог
                 </button>
               )}
             </div>
@@ -218,18 +352,14 @@ export default function OpusHomePage() {
                       <h3 className="opus-card-title">{roadmap.title}</h3>
                       <p className="opus-card-description">{roadmap.description}</p>
                       
-                      {/* Meta */}
+                      {/* Simplified meta - less cluttered */}
                       <div className="opus-card-meta">
                         <div className="opus-card-meta-left">
-                          <span className="opus-card-author">{roadmap.author}</span>
                           <span className="opus-card-level">{roadmap.level}</span>
                         </div>
                         <div className="opus-card-meta-right">
                           <span className="opus-card-stat">
                             ⭐ {roadmap.rating.toFixed(1)}
-                          </span>
-                          <span className="opus-card-stat">
-                            {isLiked ? "♥" : "♡"} {roadmap.likes}
                           </span>
                         </div>
                       </div>
