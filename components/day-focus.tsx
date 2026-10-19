@@ -6,7 +6,7 @@ import { useKaizenStore } from "@/lib/store";
 import { completedLeafXp, completesDayAt100Xp, splitTask, type TaskNode } from "@/lib/graph";
 import { EnergyOrb } from "@/components/energy-orb";
 import { XPParticles } from "@/components/xp-particles";
-import { playRewardSound } from "@/lib/reward-sound";
+import { useKaizenSounds } from "@/lib/use-kaizen-sounds";
 import { mockSplitTask } from "@/lib/mock-split";
 import { isBackendEnabled, splitTaskApi } from "@/lib/api-client";
 
@@ -19,34 +19,29 @@ type TaskData = {
   onComplete: (id: string, xp: number, x: number, y: number) => void;
   onSkip: (id: string) => void;
   onSplit: (id: string) => void;
-  willReachReward: (id: string) => boolean;
   splitting: boolean;
   completing: boolean;
   current: boolean;
-  soundEnabled: boolean;
 };
 
 function TaskCard({ data }: NodeProps<Node<TaskData>>) {
-  const { task, onComplete, onSkip, onSplit, willReachReward, splitting, completing, current, soundEnabled } = data;
+  const { task, onComplete, onSkip, onSplit, splitting, completing, current } = data;
   const [menuOpen, setMenuOpen] = useState(false);
+  const completionAcceptedRef = useRef(false);
   
   const handleComplete = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     
     // Prevent double-click during animation
-    if (completing) return;
+    if (completing || completionAcceptedRef.current) return;
+    completionAcceptedRef.current = true;
     
     const button = event.currentTarget;
     const rect = button.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
     
-    const earnsDayReward = willReachReward(task.id);
     onComplete(task.id, task.xp_weight, centerX, centerY);
-    
-    if (earnsDayReward) {
-      playRewardSound(soundEnabled);
-    }
   };
   
   return (
@@ -151,11 +146,9 @@ function arrangeGraph(
   onComplete: (id: string, xp: number, x: number, y: number) => void,
   onSkip: (id: string) => void,
   onSplit: (id: string) => void,
-  willReachReward: (id: string) => boolean,
   splittingId: string | null,
   completingId: string | null,
-  justCompletedId: string | null,
-  soundEnabled: boolean = true
+  justCompletedId: string | null
 ) {
   const available = graph.filter((task) => 
     task.type === "task" && 
@@ -199,11 +192,9 @@ function arrangeGraph(
         onComplete,
         onSkip,
         onSplit,
-        willReachReward,
         splitting: splittingId === task.id,
         completing: completingId === task.id,
         current: task.id === current?.id,
-        soundEnabled,
       },
       draggable: false,
       selectable: false,
@@ -264,6 +255,7 @@ export function DayFocus({ roadmapTitle, dayNumber, storageKey, onBack }: { road
   const graph = useKaizenStore((state) => state.focusGraphs[storageKey] ?? []);
   const soundEnabled = useKaizenStore((state) => state.soundEnabled);
   const updateFocusGraph = useKaizenStore((state) => state.updateFocusGraph);
+  const { playTaskComplete, playDayComplete } = useKaizenSounds();
   const [splittingId, setSplittingId] = useState<string | null>(null);
   const [splitError, setSplitError] = useState<string | null>(null);
   const [completingId, setCompletingId] = useState<string | null>(null);
@@ -271,8 +263,15 @@ export function DayFocus({ roadmapTitle, dayNumber, storageKey, onBack }: { road
   const [showParticles, setShowParticles] = useState<{ xp: number; x: number; y: number } | null>(null);
   
   const onComplete = useCallback((id: string, xp: number, sourceX: number, sourceY: number) => {
+    const task = graph.find((item) => item.id === id);
+    if (!task || task.type !== "task" || task.status !== "pending") return;
+    const completesDay = completesDayAt100Xp(graph, id);
     setCompletingId(id);
     setJustCompletedId(id);
+    if (soundEnabled) {
+      playTaskComplete();
+      if (completesDay) window.setTimeout(playDayComplete, 75);
+    }
     
     // Delay actual completion for animation
     setTimeout(() => {
@@ -286,7 +285,7 @@ export function DayFocus({ roadmapTitle, dayNumber, storageKey, onBack }: { road
       setTimeout(() => setShowParticles(null), 1300);
       setTimeout(() => setJustCompletedId(null), 800);
     }, 600);
-  }, [graph, storageKey, updateFocusGraph]);
+  }, [graph, playDayComplete, playTaskComplete, soundEnabled, storageKey, updateFocusGraph]);
   
   const onSkip = useCallback((id: string) => 
     updateFocusGraph(storageKey, graph.map((task) => 
@@ -294,10 +293,6 @@ export function DayFocus({ roadmapTitle, dayNumber, storageKey, onBack }: { road
     )), 
     [graph, storageKey, updateFocusGraph]
   );
-  
-  const willReachReward = useCallback((id: string) => {
-    return completesDayAt100Xp(graph, id);
-  }, [graph]);
   
   const onSplit = useCallback(async (id: string) => {
     const parent = graph.find((task) => task.id === id);
@@ -325,8 +320,8 @@ export function DayFocus({ roadmapTitle, dayNumber, storageKey, onBack }: { road
   }, [graph, storageKey, updateFocusGraph]);
   
   const { nodes, edges } = useMemo(() => 
-    arrangeGraph(graph, onComplete, onSkip, onSplit, willReachReward, splittingId, completingId, justCompletedId, soundEnabled), 
-    [graph, onComplete, onSkip, onSplit, willReachReward, splittingId, completingId, justCompletedId, soundEnabled]
+    arrangeGraph(graph, onComplete, onSkip, onSplit, splittingId, completingId, justCompletedId),
+    [graph, onComplete, onSkip, onSplit, splittingId, completingId, justCompletedId]
   );
   
   const xp = completedLeafXp(graph);
