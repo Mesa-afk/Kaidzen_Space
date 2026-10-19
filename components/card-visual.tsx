@@ -63,56 +63,73 @@ export function CardVisual({ emoji, color, themeMode = "light" }: CardVisualProp
   const accentOpacity = isDark ? 0.15 : 0.12;
 
   return (
-    <svg viewBox="0 0 400 140" fill="none" xmlns="http://www.w3.org/2000/svg">
-      {/* Gradient background */}
-      <defs>
-        <linearGradient id={`card-gradient-${emoji}`} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor={gradStart} />
-          <stop offset="100%" stopColor={gradEnd} />
-        </linearGradient>
-      </defs>
+    <div style={{ position: "relative", width: "100%", height: "100%" }}>
+      {/* SVG background with gradient and geometric accents */}
+      <svg 
+        viewBox="0 0 400 140" 
+        fill="none" 
+        xmlns="http://www.w3.org/2000/svg"
+        style={{ display: "block", width: "100%", height: "100%" }}
+      >
+        {/* Gradient background */}
+        <defs>
+          <linearGradient id={`card-gradient-${emoji}-${color}`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor={gradStart} />
+            <stop offset="100%" stopColor={gradEnd} />
+          </linearGradient>
+        </defs>
+        
+        <rect width="400" height="140" fill={`url(#card-gradient-${emoji}-${color})`} />
+        
+        {/* Geometric accents - minimal, abstract */}
+        {/* Large circle accent */}
+        <circle 
+          cx="80" 
+          cy="70" 
+          r="50" 
+          fill={accentColor} 
+          opacity={accentOpacity}
+        />
+        
+        {/* Small circle accent */}
+        <circle 
+          cx="330" 
+          cy="35" 
+          r="28" 
+          fill={accentColor} 
+          opacity={accentOpacity * 0.8}
+        />
+        
+        {/* Subtle line accent */}
+        <path 
+          d="M 250 110 Q 300 80, 350 100" 
+          stroke={accentColor} 
+          strokeWidth="3" 
+          strokeLinecap="round"
+          fill="none"
+          opacity={accentOpacity * 1.2}
+        />
+      </svg>
       
-      <rect width="400" height="140" fill={`url(#card-gradient-${emoji})`} />
-      
-      {/* Geometric accents - minimal, abstract */}
-      {/* Large circle accent */}
-      <circle 
-        cx="80" 
-        cy="70" 
-        r="50" 
-        fill={accentColor} 
-        opacity={accentOpacity}
-      />
-      
-      {/* Small circle accent */}
-      <circle 
-        cx="330" 
-        cy="35" 
-        r="28" 
-        fill={accentColor} 
-        opacity={accentOpacity * 0.8}
-      />
-      
-      {/* Subtle line accent */}
-      <path 
-        d="M 250 110 Q 300 80, 350 100" 
-        stroke={accentColor} 
-        strokeWidth="3" 
-        strokeLinecap="round"
-        fill="none"
-        opacity={accentOpacity * 1.2}
-      />
-      
-      {/* Emoji in center */}
-      <text
-        x="200"
-        y="70"
-        fontSize="64"
-        textAnchor="middle"
-        dominantBaseline="central"
+      {/* HTML emoji overlay - reliable cross-browser rendering */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "64px",
+          lineHeight: 1,
+          pointerEvents: "none",
+        }}
+        aria-hidden="true"
       >
         {emoji}
-      </text>
-    </svg>
+      </div>
+    </div>
   );
 }

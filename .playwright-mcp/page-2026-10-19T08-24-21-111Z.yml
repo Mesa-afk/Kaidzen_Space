@@ -1,0 +1,111 @@
+- generic [ref=f4e1]:
+  - generic [ref=f4e2]:
+    - complementary [ref=f4e17]:
+      - link "k kaizenspace" [ref=f4e18] [cursor=pointer]:
+        - /url: "#"
+        - generic [ref=f4e19]: k
+        - generic [ref=f4e20]: kaizenspace
+      - navigation [ref=f4e21]:
+        - generic [ref=f4e22]:
+          - button "🗂 Каталог" [ref=f4e24] [cursor=pointer]:
+            - generic [ref=f4e25]: 🗂
+            - text: Каталог
+          - button "📚 Моя полка" [ref=f4e26] [cursor=pointer]:
+            - generic [ref=f4e27]: 📚
+            - text: Моя полка
+      - generic [ref=f4e28]:
+        - generic [ref=f4e29]:
+          - generic [ref=f4e30]: У
+          - generic [ref=f4e31]:
+            - generic [ref=f4e32]: Пользователь
+            - generic [ref=f4e33]: 0 XP сегодня
+        - generic [ref=f4e34]:
+          - button "Включить тёмную тему" [active] [ref=f4e177] [cursor=pointer]: 🌙
+          - button "Выключить звук" [ref=f4e36] [cursor=pointer]: 🔊
+    - main [ref=f4e4]:
+      - generic [ref=f4e5]:
+        - generic [ref=f4e37]:
+          - heading "Каталог" [level=1] [ref=f4e38]
+          - paragraph [ref=f4e39]: Готовые маршруты для освоения новых навыков — выбери и начни сегодня.
+        - generic [ref=f4e40]:
+          - searchbox "Найти маршрут..." [ref=f4e41]
+          - generic [ref=f4e42]:
+            - button "Для тебя" [ref=f4e43] [cursor=pointer]
+            - button "Популярные" [ref=f4e44] [cursor=pointer]
+            - button "Новые" [ref=f4e45] [cursor=pointer]
+          - button "+ Создать свой" [ref=f4e46] [cursor=pointer]
+        - generic [ref=f4e47]:
+          - button "Акварель с нуля От первого мазка до уверенных скетчей природы — спокойно и последовательно. Для начинающих ⭐ 4.9" [ref=f4e48] [cursor=pointer]:
+            - generic [ref=f4e50]:
+              - generic [aria-hidden]: 🎨
+            - generic [ref=f4e56]:
+              - heading "Акварель с нуля" [level=3] [ref=f4e57]
+              - paragraph [ref=f4e58]: От первого мазка до уверенных скетчей природы — спокойно и последовательно.
+              - generic [ref=f4e59]:
+                - generic [ref=f4e60]: Для начинающих
+                - generic [ref=f4e62]: ⭐ 4.9
+          - button "Цифровой детокс 7 дней осознанного использования телефона и соцсетей. Любой уровень ⭐ 4.9" [ref=f4e64] [cursor=pointer]:
+            - generic [ref=f4e66]:
+              - generic [aria-hidden]: 📵
+            - generic [ref=f4e72]:
+              - heading "Цифровой детокс" [level=3] [ref=f4e73]
+              - paragraph [ref=f4e74]: 7 дней осознанного использования телефона и соцсетей.
+              - generic [ref=f4e75]:
+                - generic [ref=f4e76]: Любой уровень
+                - generic [ref=f4e78]: ⭐ 4.9
+          - button "Английский каждый день 15 минут в день — от первых слов до уверенного разговора о себе. Начальный ⭐ 4.8" [ref=f4e80] [cursor=pointer]:
+            - generic [ref=f4e82]:
+              - generic [aria-hidden]: 🗣️
+            - generic [ref=f4e88]:
+              - heading "Английский каждый день" [level=3] [ref=f4e89]
+              - paragraph [ref=f4e90]: 15 минут в день — от первых слов до уверенного разговора о себе.
+              - generic [ref=f4e91]:
+                - generic [ref=f4e92]: Начальный
+                - generic [ref=f4e94]: ⭐ 4.8
+          - button "Первые аккорды на гитаре От настройки струн до твоей первой песни. Без нот и теории. С нуля ⭐ 4.8" [ref=f4e96] [cursor=pointer]:
+            - generic [ref=f4e98]:
+              - generic [aria-hidden]: 🎸
+            - generic [ref=f4e104]:
+              - heading "Первые аккорды на гитаре" [level=3] [ref=f4e105]
+              - paragraph [ref=f4e106]: От настройки струн до твоей первой песни. Без нот и теории.
+              - generic [ref=f4e107]:
+                - generic [ref=f4e108]: С нуля
+                - generic [ref=f4e110]: ⭐ 4.8
+          - button "Мягкая йога дома Спокойное движение для тела и ума. Без спешки и сложных поз. Любой уровень ⭐ 4.7" [ref=f4e112] [cursor=pointer]:
+            - generic [ref=f4e114]:
+              - generic [aria-hidden]: 🧘
+            - generic [ref=f4e120]:
+              - heading "Мягкая йога дома" [level=3] [ref=f4e121]
+              - paragraph [ref=f4e122]: Спокойное движение для тела и ума. Без спешки и сложных поз.
+              - generic [ref=f4e123]:
+                - generic [ref=f4e124]: Любой уровень
+                - generic [ref=f4e126]: ⭐ 4.7
+          - button "Утренние страницы 3 страницы свободного письма каждое утро. Очищение ума. Любой уровень ⭐ 4.7" [ref=f4e128] [cursor=pointer]:
+            - generic [ref=f4e130]:
+              - generic [aria-hidden]: 📓
+            - generic [ref=f4e136]:
+              - heading "Утренние страницы" [level=3] [ref=f4e137]
+              - paragraph [ref=f4e138]: 3 страницы свободного письма каждое утро. Очищение ума.
+              - generic [ref=f4e139]:
+                - generic [ref=f4e140]: Любой уровень
+                - generic [ref=f4e142]: ⭐ 4.7
+          - button "Спокойно о финансах Разобраться в личном бюджете без стресса — шаг за шагом. Для начинающих ⭐ 4.6" [ref=f4e144] [cursor=pointer]:
+            - generic [ref=f4e146]:
+              - generic [aria-hidden]: 🌱
+            - generic [ref=f4e152]:
+              - heading "Спокойно о финансах" [level=3] [ref=f4e153]
+              - paragraph [ref=f4e154]: Разобраться в личном бюджете без стресса — шаг за шагом.
+              - generic [ref=f4e155]:
+                - generic [ref=f4e156]: Для начинающих
+                - generic [ref=f4e158]: ⭐ 4.6
+          - button "Уход за комнатными растениями Научиться понимать, что нужно твоим зелёным друзьям. Для начинающих ⭐ 4.5" [ref=f4e160] [cursor=pointer]:
+            - generic [ref=f4e162]:
+              - generic [aria-hidden]: 🪴
+            - generic [ref=f4e168]:
+              - heading "Уход за комнатными растениями" [level=3] [ref=f4e169]
+              - paragraph [ref=f4e170]: Научиться понимать, что нужно твоим зелёным друзьям.
+              - generic [ref=f4e171]:
+                - generic [ref=f4e172]: Для начинающих
+                - generic [ref=f4e174]: ⭐ 4.5
+  - button "Open Next.js Dev Tools" [ref=f4e12] [cursor=pointer]
+  - alert [ref=f4e16]

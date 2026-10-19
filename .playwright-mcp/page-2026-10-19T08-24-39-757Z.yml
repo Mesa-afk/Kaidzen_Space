@@ -1,0 +1,38 @@
+- generic [ref=f4e1]:
+  - generic [ref=f4e2]:
+    - complementary [ref=f4e17]:
+      - link "k kaizenspace" [ref=f4e18] [cursor=pointer]:
+        - /url: "#"
+        - generic [ref=f4e19]: k
+        - generic [ref=f4e20]: kaizenspace
+      - navigation [ref=f4e21]:
+        - generic [ref=f4e22]:
+          - generic [ref=f4e23]: Твоё пространство
+          - button "🗂 Каталог" [ref=f4e24] [cursor=pointer]:
+            - generic [ref=f4e25]: 🗂
+            - text: Каталог
+          - button "📚 Моя полка" [active] [ref=f4e26] [cursor=pointer]:
+            - generic [ref=f4e27]: 📚
+            - text: Моя полка
+      - generic [ref=f4e28]:
+        - generic [ref=f4e29]:
+          - generic [ref=f4e30]: У
+          - generic [ref=f4e31]:
+            - generic [ref=f4e32]: Пользователь
+            - generic [ref=f4e33]: 0 XP сегодня
+        - generic [ref=f4e34]:
+          - button "Включить тёмную тему" [ref=f4e177] [cursor=pointer]: 🌙
+          - button "Выключить звук" [ref=f4e36] [cursor=pointer]: 🔊
+    - main [ref=f4e4]:
+      - generic [ref=f4e5]:
+        - generic [ref=f4e37]:
+          - heading "Моя полка" [level=1] [ref=f4e178]
+          - paragraph [ref=f4e39]: Твои сохранённые маршруты и прогресс — продолжай с того места, где остановился.
+        - searchbox "Найти маршрут..." [ref=f4e41]
+        - generic [ref=f4e47]:
+          - generic [ref=f4e179]: 📚
+          - heading "Твоя полка пока пуста" [level=2] [ref=f4e180]
+          - paragraph [ref=f4e181]: Сохрани маршрут из каталога, чтобы начать своё путешествие.
+          - button "Перейти в каталог" [ref=f4e182] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=f4e12] [cursor=pointer]
+  - alert [ref=f4e16]
