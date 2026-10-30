@@ -14,7 +14,9 @@ import "./diamond-ui-extras.css";
 import "./roadmap-ui.css";
 import "./responsive-layout.css";
 import "@xyflow/react/dist/style.css";
+import "./m3-motion.css";
 import { ThemeInitializer } from "@/components/theme-initializer";
+import { M3Ripple } from "@/components/m3-ripple";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,6 +43,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <ThemeInitializer />
+        <div className="m3-ambient" aria-hidden="true">
+          <span className="m3-ambient-blob m3-ambient-blob-a" />
+          <span className="m3-ambient-blob m3-ambient-blob-b" />
+          <span className="m3-ambient-blob m3-ambient-blob-c" />
+        </div>
+        <M3Ripple />
         {children}
       </body>
     </html>

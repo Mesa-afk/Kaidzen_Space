@@ -69,7 +69,8 @@ export function DayMetroLine({ days, completedDays = [], currentDay, dayProgress
                 alignItems: "center",
                 justifyContent: "center",
                 height: "auto",
-              }}
+                "--m3-stagger": Math.min(index, 10),
+              } as React.CSSProperties}
             >
               {/* Station dot */}
               <button
