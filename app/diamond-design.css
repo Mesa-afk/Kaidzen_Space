@@ -76,82 +76,85 @@
 }
 
 [data-theme="dark"] {
-  --bg: #151d27;
-  --canvas-bg: #1d2935;
-  --canvas-dot: #435462;
-  --surface: #25323e;
-  --surface-elevated: #2b3946;
-  --surface-hover: #30414c;
-  --border: #3d4d5a;
-  --border-strong: #536573;
+  /* M3 Graphite & Purple — Surfaces */
+  --bg: #111315;
+  --canvas-bg: #16181B;
+  --canvas-dot: #3E4148;
+  --surface: #1D2024;
+  --surface-elevated: #23262B;
+  --surface-hover: #2A2D33;
+  --border: #292B30;
+  --border-strong: #3E4148;
   
-  --text: #e4e6df;
-  --text-muted: #aab7bd;
-  --text-subtle: #7d8b94;
+  /* M3 Text */
+  --text: #E2E2E6;
+  --text-muted: #909299;
+  --text-subtle: #6B6E75;
   
-  --sage: #89aa99;
-  --sage-dark: #709483;
-  --sage-light: #a8c5b1;
-  --sage-bg: #263b3b;
-  --primary: #719886;
-  --primary-hover: #8caf9a;
-  --primary-text: #10231e;
-  --secondary-bg: #2b3946;
-  --secondary-text: #d7e5df;
+  /* Accent — M3 Lavender/Purple replaces sage in dark */
+  --sage: #D0BCFF;
+  --sage-dark: #DFCFFF;
+  --sage-light: #B496F8;
+  --sage-bg: #23262B;
+  --primary: #D0BCFF;
+  --primary-hover: #DFCFFF;
+  --primary-text: #1D2024;
+  --secondary-bg: #23262B;
+  --secondary-text: #E2E2E6;
   
   --warm-yellow: #f5d665;
   --warm-yellow-light: #fff9d5;
-  --cream: #293640;
+  --cream: #16181B;
   
   --completed: #8ba677;
-  --completed-bg: #2a2f26;
+  --completed-bg: #1A2318;
   --completed-text: #c2d9b5;
   --reward-bg: #a98224;
   --reward-text: #fff8d6;
-  --error-bg: #382522;
-  --error-border: #765049;
-  --error-text: #f0b7ad;
-  --success-bg: #294438;
+  --error-bg: #2D1515;
+  --error-border: #7F1D1D;
+  --error-text: #FCA5A5;
+  --success-bg: #1A2D1A;
   --success-text: #c7e2cf;
   --success-border: #5e9277;
-  --like-bg: #3d2d35;
+  --like-bg: #2D1522;
   --like-text: #ffb2ac;
   --like-border: #80515a;
   
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 4px 14px rgba(208, 188, 255, 0.10);
 }
 
-/* Focus mode overrides - deep matte black */
+/* Focus mode overrides — deepest M3 charcoal */
 .focus-mode {
-  --bg: #0f110d;
-  --surface: #1a1c18;
-  --surface-hover: #22241f;
-  --border: #2d2f28;
-  --border-strong: #3a3d35;
+  --bg: #0E0F11;
+  --surface: #111315;
+  --surface-hover: #16181B;
+  --border: #1D2024;
+  --border-strong: #292B30;
   
-  --text: #d5d7ce;
-  --text-muted: #85877d;
-  --text-subtle: #5a5c54;
+  --text: #E2E2E6;
+  --text-muted: #909299;
+  --text-subtle: #6B6E75;
   
-  --sage: #7a9068;
-  --sage-dark: #5f7350;
-  --sage-light: #96a885;
-  --sage-bg: #1c1e1a;
+  --sage: #D0BCFF;
+  --sage-dark: #DFCFFF;
+  --sage-light: #B496F8;
+  --sage-bg: #16181B;
   
   --warm-yellow: #f7d95f;
   --warm-yellow-light: #fffadb;
-  --cream: #26271f;
+  --cream: #111315;
   
   --completed: #7a9068;
-  --completed-bg: #1f221c;
+  --completed-bg: #141A12;
   --completed-text: #c2d9b5;
   --reward-bg: #a98224;
   --reward-text: #fff8d6;
-  --error-bg: #382522;
-  --error-border: #765049;
-  --error-text: #f0b7ad;
+  --error-bg: #2D1515;
+  --error-border: #7F1D1D;
+  --error-text: #FCA5A5;
 }
 
 * {

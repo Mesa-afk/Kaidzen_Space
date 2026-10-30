@@ -4,6 +4,7 @@ import { dedupeRoadmaps, roadmapSourceId, type Roadmap } from "./roadmaps";
 import type { TaskNode } from "./graph";
 import type { DailySessionResponse, StoredDaySession } from "./day-session-contract";
 import { canReplaceUnstartedDayGraph, migrateDaySessionState, storeGeneratedDaySession } from "./day-session-store";
+import { formatDateKey } from "./progression";
 
 export type ThemeMode = "light" | "dark";
 
@@ -15,6 +16,8 @@ type KaizenState = {
   themeMode: ThemeMode;
   soundEnabled: boolean;
   likedRoadmapIds: string[]; // Track liked roadmap IDs
+  userName: string;
+  activeDates: string[];
   addRoadmap: (roadmap: Roadmap) => void;
   removeRoadmap: (id: string) => void;
   setFocusGraph: (key: string, graph: TaskNode[]) => void;
@@ -29,6 +32,8 @@ type KaizenState = {
   setThemeMode: (mode: ThemeMode) => void;
   toggleSound: () => void;
   toggleLike: (roadmapId: string) => void;
+  setUserName: (name: string) => void;
+  recordActivity: (dateStr?: string) => void;
 };
 
 export const useKaizenStore = create<KaizenState>()(persist((set) => ({
@@ -36,9 +41,17 @@ export const useKaizenStore = create<KaizenState>()(persist((set) => ({
   focusGraphs: {},
   daySessions: {},
   daySessionRequestKeys: {},
-  themeMode: "light",
+  themeMode: "dark",
   soundEnabled: true,
   likedRoadmapIds: [],
+  userName: "Пользователь",
+  activeDates: [],
+  setUserName: (name) => set({ userName: name.trim() || "Пользователь" }),
+  recordActivity: (dateStr) => set((state) => {
+    const today = dateStr || formatDateKey(new Date());
+    if (state.activeDates.includes(today)) return state;
+    return { activeDates: [...state.activeDates, today] };
+  }),
   addRoadmap: (roadmap) => set((state) => {
     const sourceId = roadmapSourceId(roadmap);
     if (state.myRoadmaps.some((item) => roadmapSourceId(item) === sourceId)) return state;
@@ -120,9 +133,11 @@ export const useKaizenStore = create<KaizenState>()(persist((set) => ({
       ...state,
       ...migrateDaySessionState(state),
       myRoadmaps: dedupeRoadmaps(state.myRoadmaps ?? []),
-      themeMode: state.themeMode ?? "light",
+      themeMode: state.themeMode ?? "dark",
       soundEnabled: state.soundEnabled ?? true,
       likedRoadmapIds: state.likedRoadmapIds ?? [],
+      userName: state.userName ?? "Пользователь",
+      activeDates: state.activeDates ?? [],
     };
   },
 }));

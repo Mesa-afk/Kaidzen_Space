@@ -29,23 +29,26 @@
   margin-top: var(--space-8);
 }
 
-/* === ROADMAP CARD === */
+/* === ROADMAP CARD — M3 Surface Container + Motion === */
 .opus-roadmap-card {
   position: relative;
   display: flex;
   flex-direction: column;
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
+  border-radius: 16px;                 /* M3 card radius */
   overflow: hidden;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition:
+    border-color 200ms cubic-bezier(0.2, 0, 0, 1),
+    box-shadow 200ms cubic-bezier(0.2, 0, 0, 1),
+    transform 200ms cubic-bezier(0.2, 0, 0, 1);
   min-height: 320px;
 }
 
 .opus-roadmap-card:hover {
   border-color: var(--border-medium);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   transform: translateY(-4px);
 }
 
@@ -202,17 +205,21 @@
   padding: var(--space-2) var(--space-4);
   background: transparent;
   border: none;
-  border-radius: calc(var(--radius-md) - 2px);
+  border-radius: 9999px;
   font-size: var(--text-sm);
   font-weight: 500;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition:
+    background-color 200ms cubic-bezier(0.2, 0, 0, 1),
+    color 150ms ease,
+    box-shadow 200ms ease;
   white-space: nowrap;
 }
 
 .opus-sort-tab:hover {
   color: var(--text-primary);
+  background: var(--bg-surface-hover);
 }
 
 .opus-sort-tab.active {
