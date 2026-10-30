@@ -192,6 +192,35 @@ function taskIsAvailable(graph: TaskNode[], taskId: string): boolean {
   ));
 }
 
+function buildDemoDaySession(
+  roadmap: Roadmap,
+  roadmapDay: { dayNumber: number; title: string; subskillId?: string; tasks: string[] },
+  dayNumber: number,
+) {
+  const ids = roadmapDay.tasks.map(() => crypto.randomUUID());
+  const weights = distributeXp(100, roadmapDay.tasks.length);
+  const demoGraph: TaskNode[] = roadmapDay.tasks.map((title, index) => ({
+    id: ids[index],
+    parent_id: null,
+    type: "task",
+    status: "pending",
+    title,
+    duration_minutes: Math.max(1, Math.floor(120 / roadmapDay.tasks.length / 60)),
+    xp_weight: weights[index],
+    dependencies: index === 0 ? [] : [ids[index - 1]],
+  }));
+  const legacySession = adaptLegacyTaskGraphToSession({
+    roadmapId: roadmap.id,
+    roadmapTitle: roadmap.title,
+    dayNumber,
+    dayTitle: roadmapDay.title,
+    subskillId: roadmapDay.subskillId,
+    subskillDescription: roadmap.subskills?.find((item) => item.id === roadmapDay.subskillId)?.description,
+    graph: demoGraph,
+  });
+  return { demoGraph, legacySession };
+}
+
 const nodeTypes = { taskCard: TaskCard };
 const edgeTypes = { growth: GrowingEdge };
 
@@ -357,27 +386,7 @@ export function DayFocus({ roadmapTitle, roadmap, dayNumber, storageKey, onBack 
     try {
       if (!isBackendEnabled()) {
         if (roadmapDay.tasks.length === 0) throw new Error("Для этого дня ещё нет задач. Попробуй открыть его позже.");
-        const ids = roadmapDay.tasks.map(() => crypto.randomUUID());
-        const weights = distributeXp(100, roadmapDay.tasks.length);
-        const demoGraph: TaskNode[] = roadmapDay.tasks.map((title, index) => ({
-          id: ids[index],
-          parent_id: null,
-          type: "task",
-          status: "pending",
-          title,
-          duration_minutes: Math.max(1, Math.floor(120 / roadmapDay.tasks.length / 60)),
-          xp_weight: weights[index],
-          dependencies: index === 0 ? [] : [ids[index - 1]],
-        }));
-        const legacySession = adaptLegacyTaskGraphToSession({
-          roadmapId: roadmap.id,
-          roadmapTitle: roadmap.title,
-          dayNumber,
-          dayTitle: roadmapDay.title,
-          subskillId: roadmapDay.subskillId,
-          subskillDescription: roadmap.subskills?.find((item) => item.id === roadmapDay.subskillId)?.description,
-          graph: demoGraph,
-        });
+        const { demoGraph, legacySession } = buildDemoDaySession(roadmap, roadmapDay, dayNumber);
         setDaySessionWithGraph(storageKey, legacySession, demoGraph);
         return;
       }
@@ -434,6 +443,13 @@ export function DayFocus({ roadmapTitle, roadmap, dayNumber, storageKey, onBack 
       saveGeneratedDaySession(storageKey, generated);
       requestKeyRef.current = null;
     } catch (error) {
+      if (roadmapDay && roadmapDay.tasks.length > 0) {
+        console.warn("Day session generation failed, using roadmap demo tasks fallback:", error);
+        const { demoGraph, legacySession } = buildDemoDaySession(roadmap, roadmapDay, dayNumber);
+        setDaySessionWithGraph(storageKey, legacySession, demoGraph);
+        setSessionError(null);
+        return;
+      }
       setSessionError(error instanceof Error ? error.message : "Не удалось загрузить задачи. Попробуй ещё раз.");
     } finally {
       requestInFlightRef.current = false;

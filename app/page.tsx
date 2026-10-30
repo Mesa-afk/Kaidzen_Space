@@ -81,6 +81,25 @@ export default function OpusHomePage() {
     setSelectedDay(dayNumber);
   };
 
+  const navigateToRepository = () => {
+    setView("repository");
+    setSelected(null);
+    setSelectedDay(null);
+    setShowCreate(false);
+  };
+
+  const navigateToMine = () => {
+    setView("mine");
+    setSelected(null);
+    setSelectedDay(null);
+    setShowCreate(false);
+  };
+
+  const handleBrandClick = (event: React.MouseEvent) => {
+    event.preventDefault();
+    navigateToRepository();
+  };
+
   const generateRoadmap = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setGenerating(true);
@@ -184,26 +203,31 @@ export default function OpusHomePage() {
     <div className="opus-shell">
       {/* Sidebar */}
       <aside className="opus-sidebar">
-        <a href="#" className="opus-brand">
+        <button
+          type="button"
+          onClick={handleBrandClick}
+          className="opus-brand"
+          aria-label="На главную"
+        >
           <div className="opus-brand-mark">k</div>
           <span className="opus-brand-text">
             kaizen<span className="opus-brand-light">space</span>
           </span>
-        </a>
+        </button>
 
         <nav className="opus-nav">
           <div className="opus-nav-section">
             <div className="opus-nav-label">Твоё пространство</div>
             <button
               className={`opus-nav-item ${view === "repository" ? "active" : ""}`}
-              onClick={() => setView("repository")}
+              onClick={navigateToRepository}
             >
               <span className="opus-nav-item-icon">🗂</span>
               Каталог
             </button>
             <button
               className={`opus-nav-item ${view === "mine" ? "active" : ""}`}
-              onClick={() => setView("mine")}
+              onClick={navigateToMine}
             >
               <span className="opus-nav-item-icon">📚</span>
               Моя полка
@@ -464,7 +488,7 @@ export default function OpusHomePage() {
                 }
               </p>
               {view === "mine" && (
-                <button className="btn btn-primary" onClick={() => setView("repository")}>
+                <button className="btn btn-primary" onClick={navigateToRepository}>
                   Перейти в каталог
                 </button>
               )}
