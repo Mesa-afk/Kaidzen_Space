@@ -354,6 +354,7 @@ export function DayFocus({ roadmapTitle, roadmap, dayNumber, storageKey, onBack 
   const setDaySessionRequestKey = useKaizenStore((state) => state.setDaySessionRequestKey);
   const addDaySessionTaskMetadata = useKaizenStore((state) => state.addDaySessionTaskMetadata);
   const markDaySessionCompleted = useKaizenStore((state) => state.markDaySessionCompleted);
+  const recordActivity = useKaizenStore((state) => state.recordActivity);
   const { playTaskComplete, playDayComplete } = useKaizenSounds();
   const [splittingId, setSplittingId] = useState<string | null>(null);
   const [splitError, setSplitError] = useState<string | null>(null);
@@ -491,6 +492,7 @@ export function DayFocus({ roadmapTitle, roadmap, dayNumber, storageKey, onBack 
       updateFocusGraph(storageKey, graph.map((task) => 
         task.id === id ? { ...task, status: "completed" } : task
       ));
+      recordActivity();
       if (completesDay) markDaySessionCompleted(storageKey, new Date().toISOString());
       setCompletingId(null);
       

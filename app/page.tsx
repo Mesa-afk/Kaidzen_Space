@@ -13,8 +13,11 @@ import { DayFocus } from "@/components/day-focus";
 import { DayMetroLine } from "@/components/day-metro-line";
 import { calculateCompletedDays, calculateDayProgress, findCurrentDay } from "@/lib/progress";
 import type { TaskNode } from "@/lib/graph";
+import { ProfileView } from "@/components/profile-view";
+import { calculateLevel, calculateStreak } from "@/lib/progression";
+import { calculateTotalXp } from "@/lib/total-xp";
 
-type View = "repository" | "mine";
+type View = "repository" | "mine" | "profile";
 type SortMode = "for-you" | "popular" | "recent";
 
 export default function OpusHomePage() {
@@ -30,9 +33,25 @@ export default function OpusHomePage() {
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   
   const hydrated = useHydrated();
-  const { myRoadmaps, addRoadmap, removeRoadmap, themeMode, setThemeMode, soundEnabled, toggleSound, likedRoadmapIds, toggleLike, focusGraphs, setFocusGraph } = useKaizenStore();
+  const {
+    myRoadmaps,
+    addRoadmap,
+    removeRoadmap,
+    themeMode,
+    setThemeMode,
+    soundEnabled,
+    toggleSound,
+    likedRoadmapIds,
+    toggleLike,
+    focusGraphs,
+    setFocusGraph,
+    userName,
+    activeDates,
+  } = useKaizenStore();
   
-  const todayXp = calculateTodayXp(focusGraphs);
+  const totalXp = calculateTotalXp(focusGraphs);
+  const levelInfo = calculateLevel(totalXp);
+  const streakInfo = calculateStreak(activeDates, totalXp);
   
   const roadmaps = view === "repository" ? enhancedDemoRoadmaps : myRoadmaps;
   
@@ -237,13 +256,28 @@ export default function OpusHomePage() {
 
         {/* Profile & Settings at bottom */}
         <div className="opus-profile-section">
-          <div className="opus-profile">
-            <div className="opus-profile-avatar">У</div>
-            <div className="opus-profile-info">
-              <div className="opus-profile-name">Пользователь</div>
-              <div className="opus-profile-xp">{todayXp} XP сегодня</div>
+          <button
+            type="button"
+            className={`opus-profile-btn ${view === "profile" ? "active" : ""}`}
+            onClick={() => {
+              setView("profile");
+              setSelected(null);
+              setSelectedDay(null);
+              setShowCreate(false);
+            }}
+            aria-label="Профиль пользователя"
+            title="Открыть профиль"
+          >
+            <div className="opus-profile-avatar">
+              {userName.slice(0, 1).toUpperCase() || "У"}
             </div>
-          </div>
+            <div className="opus-profile-info">
+              <div className="opus-profile-name">{userName}</div>
+              <div className="opus-profile-xp">
+                Ур. {levelInfo.level} · 🔥 {streakInfo.currentStreak} дн.
+              </div>
+            </div>
+          </button>
           
           <div className="opus-settings-row">
             <button
@@ -340,6 +374,11 @@ export default function OpusHomePage() {
               );
             })()}
           </div>
+        ) : view === "profile" ? (
+          <ProfileView
+            onBack={navigateToRepository}
+            onNavigateToCatalog={navigateToRepository}
+          />
         ) : (
           /* Catalog/Shelf view */
           <div className="opus-content">
