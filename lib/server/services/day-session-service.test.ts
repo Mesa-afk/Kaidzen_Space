@@ -34,8 +34,8 @@ const legacyInput: GenerateDaySessionRequest = {
   roadmapDescription: "Старый roadmap без Kaufman metadata.",
   dayNumber: 10,
   dayTitle: "Первые фразы",
-  completedHistory: [
-    { effectiveDay: 3, dayNumber: 3, creditedSeconds: 180 },
+  sessionHistory: [
+    { effectiveDay: 3, dayNumber: 3, completed: true, creditedSeconds: 180 },
   ],
   usedModifierIds: ["interest-favorite-topic", "interest-real-life"],
 };
@@ -78,7 +78,7 @@ describe("generateDaySession", () => {
       dayTitle: "Шаг",
       effectiveDay: 12,
       daysMissed: 2,
-      completedHistory: [],
+      sessionHistory: [],
     });
     expect(recovery).toMatchObject({ effectiveDay: 9, phase: "RSD_RECOVERY", dailyBudgetSeconds: 840 });
 
@@ -89,7 +89,7 @@ describe("generateDaySession", () => {
       dayNumber: 66,
       dayTitle: "Финальный шаг",
       effectiveDay: 66,
-      completedHistory: [{ effectiveDay: 65, creditedSeconds: 71_970 }],
+      sessionHistory: [{ effectiveDay: 65, completed: true, creditedSeconds: 71_970 }],
     });
     expect(finalSlice).toMatchObject({ effectiveDay: 66, dailyBudgetSeconds: 30, taskCount: 1 });
     expect(finalSlice.tasks[0].durationSeconds).toBe(30);

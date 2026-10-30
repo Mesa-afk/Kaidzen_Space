@@ -176,9 +176,11 @@ export default function Home() {
   // Render Day Focus if day is selected
   if (selected && selectedDay !== null) {
     return (
-      <DayFocus
-        roadmapTitle={selected.title}
-        dayNumber={selectedDay}
+          <DayFocus
+            key={`${selected.id}:${selectedDay}`}
+            roadmapTitle={selected.title}
+            roadmap={selected}
+            dayNumber={selectedDay}
         storageKey={`${selected.id}:${selectedDay}`}
         onBack={() => setSelectedDay(null)}
       />

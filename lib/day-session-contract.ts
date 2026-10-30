@@ -18,6 +18,7 @@ export type DailySessionResponse = {
   dayNumber: number;
   effectiveDay: number;
   phase: SchedulerPhase;
+  subskill: { id: string; title: string; description: string };
   dailyBudgetSeconds: number;
   creditedSecondsBefore: number;
   projectedCreditedSeconds: number;
@@ -27,15 +28,26 @@ export type DailySessionResponse = {
   tasks: DailySessionTask[];
 };
 
+export type StoredDailySessionTask = Omit<DailySessionTask, "task"> & { taskId: string };
+
+export type StoredDaySession = Omit<DailySessionResponse, "tasks" | "dailyBudgetSeconds"> & {
+  /** Legacy local graphs can predate the 20-minute Kaufman budget. */
+  dailyBudgetSeconds: number;
+  tasks: StoredDailySessionTask[];
+  createdAt: string;
+  completedAt?: string;
+};
+
 const subskillContextSchema = z.object({
   id: z.string().trim().min(1).max(80),
   title: z.string().trim().min(1).max(120),
   description: z.string().trim().max(500).optional(),
 }).strict();
 
-export const completedSessionHistorySchema = z.object({
+export const sessionHistoryEntrySchema = z.object({
   effectiveDay: z.number().int().min(1).max(66).optional(),
   dayNumber: z.number().int().min(1).max(66).optional(),
+  completed: z.boolean().default(true),
   subskillId: z.string().trim().min(1).max(80).optional(),
   subskillTitle: z.string().trim().min(1).max(120).optional(),
   subskillDescription: z.string().trim().max(500).optional(),
@@ -63,7 +75,7 @@ export const generateDaySessionRequestSchema = z.object({
   phase: z.enum(["AMYGDALA_BYPASS", "RAMP_UP", "KAUFMAN_CRUISE", "RSD_RECOVERY"]).optional(),
   daysMissed: z.number().int().min(0).max(365).default(0),
   wasTooHard: z.boolean().default(false),
-  completedHistory: z.array(completedSessionHistorySchema).max(500).default([]),
+  sessionHistory: z.array(sessionHistoryEntrySchema).max(500).default([]),
   usedModifierIds: z.array(z.string().trim().min(1).max(80)).max(60).default([]),
 }).strict();
 
@@ -96,8 +108,8 @@ export const dailySessionTaskSchema = z.object({
     "PROJECT_BUILD",
   ]),
   icnuTrigger: icnuTriggerSchema,
-  instruction: z.string().trim().min(5).max(500),
-  evidenceMethod: z.string().trim().min(3).max(300),
+  instruction: z.string().trim().min(5).max(200),
+  evidenceMethod: z.string().trim().min(3).max(120),
 }).strict();
 
 export const dailySessionResponseSchema = z.object({
@@ -105,6 +117,7 @@ export const dailySessionResponseSchema = z.object({
   dayNumber: z.number().int().min(1).max(66),
   effectiveDay: z.number().int().min(1).max(66),
   phase: z.enum(["AMYGDALA_BYPASS", "RAMP_UP", "KAUFMAN_CRUISE", "RSD_RECOVERY"]),
+  subskill: sessionSubskillSchema,
   dailyBudgetSeconds: z.number().int().min(30).max(1200),
   creditedSecondsBefore: z.number().int().min(0).max(72_000),
   projectedCreditedSeconds: z.number().int().min(0).max(72_000),

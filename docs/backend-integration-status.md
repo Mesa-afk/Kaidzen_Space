@@ -4,6 +4,8 @@ Implemented:
 
 - `POST /api/roadmaps/generate`: validated request, server LLM gateway,
   temporary-ID normalization, graph and per-day XP checks.
+- `POST /api/roadmaps/skeleton`: Kaufman/Dreyfus/Maurer roadmap metadata for a
+  20-hour/66-day plan; only Day 1 receives generated TaskNodes.
 - `POST /api/tasks/split`: validated graph ownership boundary, server-owned
   child IDs/XP/parents/dependencies, atomic graph candidate and cycle checks.
 - Server services under `lib/server/services/` and validation under
@@ -12,8 +14,8 @@ Implemented:
   schema validation, safe correlation logging, and three total attempts.
 - Repository/shelf service contracts, demo atomic repository, quota policy, and
   idempotency boundary.
-- API adapters in `lib/api-client.ts`; mock adapters remain available by
-  default. Set `NEXT_PUBLIC_BACKEND_MODE=api` to use real generation/splitting.
+- API adapters in `lib/api-client.ts`; real backend mode is the default.
+  Set `NEXT_PUBLIC_BACKEND_MODE=mock` to use local demo generation/splitting.
 - Zustand persistence/migration and a non-destructive server-progress merge.
 
 Not production-ready without deployment work:

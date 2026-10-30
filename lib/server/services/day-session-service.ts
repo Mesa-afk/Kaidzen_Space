@@ -10,8 +10,8 @@ import { dailySessionResponseSchema } from "@/lib/day-session-contract";
 const modelTasksSchema = z.object({
   tasks: z.array(z.object({
     title: z.string().trim().min(3).max(180),
-    instruction: z.string().trim().min(5).max(500),
-    evidenceMethod: z.string().trim().min(3).max(300),
+    instruction: z.string().trim().min(5).max(200),
+    evidenceMethod: z.string().trim().min(3).max(120),
   }).strict()).min(1).max(10),
 }).strict();
 
@@ -30,7 +30,7 @@ function normalizeHistory(input: ParsedGenerateDaySessionRequest): {
   const bySubskillId = new Map<string, { id: string; title: string; description: string }>();
   let creditedSeconds = 0;
 
-  for (const item of input.completedHistory) {
+  for (const item of input.sessionHistory) {
     const effectiveDay = item.effectiveDay ?? item.dayNumber;
     if (effectiveDay === undefined) continue;
     const subskill = {
@@ -38,8 +38,10 @@ function normalizeHistory(input: ParsedGenerateDaySessionRequest): {
       title: item.subskillTitle ?? `День ${item.dayNumber ?? effectiveDay}`,
       description: item.subskillDescription ?? `Повтор ключевых действий из учебного дня ${item.dayNumber ?? effectiveDay}.`,
     };
-    entries.push({ day: effectiveDay, subskillId: subskill.id });
-    bySubskillId.set(subskill.id, subskill);
+    if (item.completed) {
+      entries.push({ day: effectiveDay, subskillId: subskill.id });
+      bySubskillId.set(subskill.id, subskill);
+    }
     creditedSeconds += item.creditedSeconds;
   }
 
@@ -151,6 +153,7 @@ export async function generateDaySession(
         "Ты генерируешь одну короткую Kaizen-сессию для практики навыка.",
         "Создай только запрошенное количество атомарных, выполнимых действий для новичка.",
         "Не меняй количество, когнитивные роли, ICNU-модификаторы или время: их назначил сервер.",
+        "Инструкция должна быть краткой (до 200 символов), способ проверки — до 120 символов.",
         "Для каждого действия дай ясную инструкцию и простой способ увидеть/зафиксировать результат.",
         "Учитывай повтор поднавыка, если он передан, но не добавляй отдельные задания сверх количества.",
         "Верни только JSON вида {\"tasks\":[{\"title\":\"...\",\"instruction\":\"...\",\"evidenceMethod\":\"...\"}]}.",
@@ -191,6 +194,7 @@ export async function generateDaySession(
     dayNumber: input.dayNumber,
     effectiveDay,
     phase,
+    subskill: currentSubskill,
     dailyBudgetSeconds,
     creditedSecondsBefore: creditedSeconds,
     projectedCreditedSeconds: creditedSeconds + dailyBudgetSeconds,

@@ -1,14 +1,21 @@
 import type { TaskNode } from "./graph";
-import { roadmapResponseSchema, splitResponseSchema, type RoadmapResponse } from "./api-schemas";
+import {
+  roadmapResponseSchema,
+  roadmapSkeletonResponseSchema,
+  splitResponseSchema,
+  type RoadmapResponse,
+  type RoadmapSkeletonResponse,
+} from "./api-schemas";
+import { dailySessionResponseSchema, type GenerateDaySessionRequest, type DailySessionResponse } from "./day-session-contract";
 
 export class ApiClientError extends Error {
   constructor(message: string, readonly code = "API_ERROR") { super(message); }
 }
 
-async function postJson<T>(url: string, body: unknown, parse: (value: unknown) => T): Promise<T> {
+async function postJson<T>(url: string, body: unknown, parse: (value: unknown) => T, requestKey = crypto.randomUUID()): Promise<T> {
   const response = await fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "Idempotency-Key": crypto.randomUUID() },
+    headers: { "Content-Type": "application/json", "Idempotency-Key": requestKey },
     body: JSON.stringify(body),
   });
   const payload: unknown = await response.json().catch(() => null);
@@ -24,13 +31,29 @@ async function postJson<T>(url: string, body: unknown, parse: (value: unknown) =
 }
 
 export function isBackendEnabled() {
-  return process.env.NEXT_PUBLIC_BACKEND_MODE === "api";
+  return process.env.NEXT_PUBLIC_BACKEND_MODE !== "mock";
 }
 
 export function generateRoadmapApi(topic: string, level: string): Promise<RoadmapResponse> {
   return postJson("/api/roadmaps/generate", { topic, level }, (value) => roadmapResponseSchema.parse(value));
 }
 
+export function generateRoadmapSkeletonApi(userGoal: string): Promise<RoadmapSkeletonResponse> {
+  return postJson("/api/roadmaps/skeleton", { userGoal }, (value) => roadmapSkeletonResponseSchema.parse(value));
+}
+
 export function splitTaskApi(task: TaskNode, graph: TaskNode[]): Promise<{ tasks: TaskNode[] }> {
   return postJson("/api/tasks/split", { task, graph }, (value) => splitResponseSchema.parse(value));
+}
+
+export function generateDaySessionApi(
+  input: GenerateDaySessionRequest,
+  idempotencyKey: string,
+): Promise<DailySessionResponse> {
+  return postJson(
+    "/api/roadmaps/day/generate",
+    input,
+    (value) => dailySessionResponseSchema.parse(value),
+    idempotencyKey,
+  );
 }

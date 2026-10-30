@@ -2,12 +2,17 @@
 
 import { useState } from "react";
 import { enhancedDemoRoadmaps } from "@/lib/mock-data";
-import { type Roadmap } from "@/lib/roadmaps";
+import { roadmapSourceId, type Roadmap } from "@/lib/roadmaps";
 import { useKaizenStore } from "@/lib/store";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { CardVisual } from "@/components/card-visual";
 import { mockGenerateRoadmap } from "@/lib/mock-generate";
-import { generateRoadmapApi, isBackendEnabled } from "@/lib/api-client";
+import { generateRoadmapSkeletonApi, isBackendEnabled } from "@/lib/api-client";
+import { calculateTodayXp } from "@/lib/total-xp";
+import { DayFocus } from "@/components/day-focus";
+import { DayMetroLine } from "@/components/day-metro-line";
+import { calculateCompletedDays, calculateDayProgress, findCurrentDay } from "@/lib/progress";
+import type { TaskNode } from "@/lib/graph";
 
 type View = "repository" | "mine";
 type SortMode = "for-you" | "popular" | "recent";
@@ -21,9 +26,13 @@ export default function OpusHomePage() {
   const [level, setLevel] = useState("");
   const [generating, setGenerating] = useState(false);
   const [createError, setCreateError] = useState("");
+  const [selected, setSelected] = useState<Roadmap | null>(null);
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
   
   const hydrated = useHydrated();
-  const { myRoadmaps, addRoadmap, themeMode, setThemeMode, soundEnabled, toggleSound, likedRoadmapIds } = useKaizenStore();
+  const { myRoadmaps, addRoadmap, removeRoadmap, themeMode, setThemeMode, soundEnabled, toggleSound, likedRoadmapIds, toggleLike, focusGraphs, setFocusGraph } = useKaizenStore();
+  
+  const todayXp = calculateTodayXp(focusGraphs);
   
   const roadmaps = view === "repository" ? enhancedDemoRoadmaps : myRoadmaps;
   
@@ -45,40 +54,106 @@ export default function OpusHomePage() {
     roadmap.description.toLowerCase().includes(query.toLowerCase())
   );
 
+  const takeRoadmap = (roadmap: Roadmap) => {
+    const sourceId = roadmapSourceId(roadmap);
+    if (myRoadmaps.some((item) => roadmapSourceId(item) === sourceId)) {
+      setView("mine");
+      setSelected(null);
+      return;
+    }
+    addRoadmap({ ...roadmap, id: crypto.randomUUID(), sourceId });
+    setView("mine");
+    setSelected(null);
+  };
+
+  const isOnShelf = (roadmap: Roadmap) => 
+    myRoadmaps.some((item) => roadmapSourceId(item) === roadmapSourceId(roadmap));
+
+  const removeFromShelf = (roadmap: Roadmap) => {
+    removeRoadmap(roadmap.id);
+    setSelected(null);
+    setSelectedDay(null);
+  };
+
+  const openDay = (roadmap: Roadmap, dayNumber: number) => {
+    const day = roadmap.days.find((item) => item.dayNumber === dayNumber);
+    if (!day) return;
+    setSelectedDay(dayNumber);
+  };
+
   const generateRoadmap = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setGenerating(true);
     setCreateError("");
     
     try {
-      const generated = isBackendEnabled()
-        ? await generateRoadmapApi(topic, level)
-        : await new Promise<ReturnType<typeof mockGenerateRoadmap>>((resolve) => 
-            setTimeout(() => resolve(mockGenerateRoadmap(topic, level)), 1500)
-          );
-      
       const id = crypto.randomUUID();
-      const roadmap: Roadmap = {
-        id,
-        sourceId: id,
-        title: generated.project_title,
-        emoji: generated.project_emoji,
-        description: `Путь к цели «${topic}» — маленькими шагами и в своём темпе.`,
-        level,
-        likes: 0,
-        rating: 0,
-        author: "Ты",
-        color: "mint",
-        days: generated.days.map((day) => ({
-          dayNumber: day.day_number,
-          title: `Фокус дня ${day.day_number}`,
-          tasks: day.tasks.filter((task) => task.type === "task").map((task) => task.title),
-        })),
-      };
+      let roadmap: Roadmap;
+      let dayGraphs: { dayNumber: number; tasks: TaskNode[] }[];
+
+      if (isBackendEnabled()) {
+        const generated = await generateRoadmapSkeletonApi(`${topic}\nУровень пользователя: ${level}`);
+        roadmap = {
+          id,
+          sourceId: id,
+          title: generated.folder_title,
+          emoji: generated.emoji,
+          description: generated.target_performance_level,
+          level,
+          likes: 0,
+          rating: 0,
+          author: "Ты",
+          color: "mint",
+          lovableProject: generated.lovable_project,
+          targetPerformanceLevel: generated.target_performance_level,
+          estimatedGlobalHours: generated.estimated_global_hours,
+          subskills: generated.subskills.map((subskill) => ({
+            id: subskill.id,
+            title: subskill.title,
+            description: subskill.description,
+            startDay: subskill.day_start,
+            endDay: subskill.day_end,
+          })),
+          days: generated.days.map((day) => ({
+            dayNumber: day.day_number,
+            title: day.title,
+            subskillId: day.subskill_id,
+            tasks: day.tasks.filter((task) => task.type === "task").map((task) => task.title),
+          })),
+        };
+        dayGraphs = generated.days
+          .filter((day) => day.tasks.length > 0)
+          .map((day) => ({ dayNumber: day.day_number, tasks: day.tasks }));
+      } else {
+        const generated = await new Promise<ReturnType<typeof mockGenerateRoadmap>>((resolve) =>
+          setTimeout(() => resolve(mockGenerateRoadmap(topic, level)), 1500)
+        );
+        roadmap = {
+          id,
+          sourceId: id,
+          title: generated.project_title,
+          emoji: generated.project_emoji,
+          description: `Путь к цели «${topic}» — маленькими шагами и в своём темпе.`,
+          level,
+          likes: 0,
+          rating: 0,
+          author: "Ты",
+          color: "mint",
+          days: generated.days.map((day) => ({
+            dayNumber: day.day_number,
+            title: `Фокус дня ${day.day_number}`,
+            tasks: day.tasks.filter((task) => task.type === "task").map((task) => task.title),
+          })),
+        };
+        dayGraphs = generated.days.map((day) => ({ dayNumber: day.day_number, tasks: day.tasks }));
+      }
+
+      dayGraphs.forEach(({ dayNumber, tasks }) => setFocusGraph(`${id}:${dayNumber}`, tasks));
       
       addRoadmap(roadmap);
       setView("mine");
       setShowCreate(false);
+      setSelected(roadmap);
       setTopic("");
       setLevel("");
     } catch (error) {
@@ -142,7 +217,7 @@ export default function OpusHomePage() {
             <div className="opus-profile-avatar">У</div>
             <div className="opus-profile-info">
               <div className="opus-profile-name">Пользователь</div>
-              <div className="opus-profile-xp">0 XP сегодня</div>
+              <div className="opus-profile-xp">{todayXp} XP сегодня</div>
             </div>
           </div>
           
@@ -167,19 +242,95 @@ export default function OpusHomePage() {
 
       {/* Main content */}
       <main className="opus-main">
-        <div className="opus-content">
-          {/* Section header */}
-          <header className="opus-section-header">
-            <h1 className="opus-section-title">
-              {view === "repository" ? "Каталог" : "Моя полка"}
-            </h1>
-            <p className="opus-section-subtitle">
-              {view === "repository" 
-                ? "Готовые маршруты для освоения новых навыков — выбери и начни сегодня."
-                : "Твои сохранённые маршруты и прогресс — продолжай с того места, где остановился."
-              }
-            </p>
-          </header>
+        {/* Focus view when a day is selected */}
+        {selectedDay !== null && selected ? (
+          <DayFocus
+            key={`${selected.id}:${selectedDay}`}
+            roadmapTitle={selected.title}
+            roadmap={selected}
+            dayNumber={selectedDay}
+            storageKey={`${selected.id}:${selectedDay}`}
+            onBack={() => setSelectedDay(null)}
+          />
+        ) : selected ? (
+          /* Roadmap detail view */
+          <div className="opus-content">
+            <header className="opus-detail-header">
+              <button 
+                className="opus-back-btn"
+                onClick={() => setSelected(null)}
+              >
+                ← Назад
+              </button>
+              
+              <div className="opus-detail-title-row">
+                <div className="opus-detail-visual">
+                  <CardVisual emoji={selected.emoji} color={selected.color} themeMode={themeMode} />
+                </div>
+                <div>
+                  <h1 className="opus-detail-title">{selected.title}</h1>
+                  <p className="opus-detail-description">{selected.description}</p>
+                </div>
+              </div>
+              
+              <div className="opus-detail-actions">
+                {isOnShelf(selected) ? (
+                  <button 
+                    className="btn btn-secondary"
+                    onClick={() => removeFromShelf(selected)}
+                  >
+                    Удалить с полки
+                  </button>
+                ) : (
+                  <button 
+                    className="btn btn-primary"
+                    onClick={() => takeRoadmap(selected)}
+                  >
+                    Добавить на полку
+                  </button>
+                )}
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => toggleLike(selected.id)}
+                >
+                  {likedRoadmapIds.includes(selected.id) ? "💙" : "🤍"}
+                </button>
+              </div>
+            </header>
+            
+            {(() => {
+              const completedDays = calculateCompletedDays(selected.id, selected.days.length, focusGraphs);
+              const currentDay = findCurrentDay(selected.id, selected.days.length, focusGraphs);
+              const dayProgress = Object.fromEntries(selected.days.map((day) => {
+                const graph = focusGraphs[`${selected.id}:${day.dayNumber}`];
+                return [day.dayNumber, graph ? calculateDayProgress(graph).percentage : 0];
+              }));
+              return (
+                <DayMetroLine
+                  days={selected.days}
+                  completedDays={completedDays}
+                  currentDay={currentDay}
+                  dayProgress={dayProgress}
+                  onDayClick={(dayNumber) => openDay(selected, dayNumber)}
+                />
+              );
+            })()}
+          </div>
+        ) : (
+          /* Catalog/Shelf view */
+          <div className="opus-content">
+            {/* Section header */}
+            <header className="opus-section-header">
+              <h1 className="opus-section-title">
+                {view === "repository" ? "Каталог" : "Моя полка"}
+              </h1>
+              <p className="opus-section-subtitle">
+                {view === "repository" 
+                  ? "Готовые маршруты для освоения новых навыков — выбери и начни сегодня."
+                  : "Твои сохранённые маршруты и прогресс — продолжай с того места, где остановился."
+                }
+              </p>
+            </header>
 
           {/* Filter bar and create button */}
           <div className="opus-filter-bar">
@@ -321,23 +472,23 @@ export default function OpusHomePage() {
           ) : (
             <div className="opus-cards-grid">
               {visible.map((roadmap) => {
-                const isLiked = likedRoadmapIds.includes(roadmap.id);
+                const completedDays = calculateCompletedDays(roadmap.id, roadmap.days.length, focusGraphs);
+                const progressPercent = roadmap.days.length > 0 
+                  ? Math.round((completedDays.length / roadmap.days.length) * 100) 
+                  : 0;
                 
                 return (
                   <button
                     key={roadmap.id}
                     className="opus-roadmap-card"
-                    onClick={() => {
-                      // TODO: Open roadmap detail
-                      console.log("Open roadmap:", roadmap.id);
-                    }}
+                    onClick={() => setSelected(roadmap)}
                   >
                     {/* Progress bar for shelf cards */}
                     {view === "mine" && (
                       <div className="opus-card-progress">
                         <div 
                           className="opus-card-progress-fill" 
-                          style={{ width: "0%" }} // TODO: Calculate real progress
+                          style={{ width: `${progressPercent}%` }}
                         />
                       </div>
                     )}
@@ -369,7 +520,8 @@ export default function OpusHomePage() {
               })}
             </div>
           )}
-        </div>
+          </div>
+        )}
       </main>
     </div>
   );

@@ -33,5 +33,14 @@ snapshot; without auth and durable user/session storage, it is validated but
 cannot be treated as authoritative. Idempotency and rate limits also use the
 existing process-local demo adapter and are not production guarantees.
 
-This endpoint is not wired into UI opening/completion yet; that integration and
-durable session history belong to a later stage.
+The Focus screen requests a session when a day has no saved session, stores
+session metadata beside its existing graph in Zustand/localStorage, and reuses
+that session on reopen. TaskNode remains unchanged; graph status is authoritative
+for XP and planned-second credit, so completed tasks are counted once and
+skipped tasks are not credited. Older persisted graphs are adapted to fallback
+session metadata without replacing their IDs, statuses, XP, or dependencies.
+
+This is still demo persistence: there is no auth or durable server session
+repository, and there is no elapsed-time timer. The browser sends a validated
+local history snapshot as context; the server recomputes planning values but
+cannot authoritatively verify that history until persistence/auth is added.

@@ -5,6 +5,7 @@ import "./opus-design-tokens.css";
 import "./opus-base.css";
 import "./opus-layout.css";
 import "./opus-roadmap-cards.css";
+import "./opus-detail.css";
 import "./diamond-design.css";
 import "./diamond-components.css";
 import "./diamond-focus.css";

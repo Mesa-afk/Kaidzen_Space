@@ -1,4 +1,19 @@
-export type RoadmapDay = { dayNumber: number; title: string; tasks: string[] };
+export type RoadmapSubskill = {
+  id: string;
+  title: string;
+  description: string;
+  startDay: number;
+  endDay: number;
+};
+
+export type RoadmapDay = {
+  dayNumber: number;
+  title: string;
+  tasks: string[];
+  /** ID linking this day to the roadmap's subskills metadata. */
+  subskillId?: string;
+};
+
 export type Roadmap = {
   id: string;
   sourceId?: string;
@@ -7,6 +22,10 @@ export type Roadmap = {
   description: string;
   level: string;
   days: RoadmapDay[];
+  lovableProject?: string;
+  targetPerformanceLevel?: string;
+  estimatedGlobalHours?: number;
+  subskills?: RoadmapSubskill[];
   likes: number;
   rating: number;
   author: string;

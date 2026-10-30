@@ -6,12 +6,12 @@
 :root {
   /* === LIGHT THEME (базовая) === */
   
-  /* Backgrounds */
-  --bg-page: #FDFDFB;
-  --bg-canvas: #F9F8F4;
-  --bg-surface: #FFFFFF;
-  --bg-surface-hover: #F5F4F0;
-  --bg-surface-raised: #FAFAF8;
+  /* Backgrounds - Warm, layered tonal system */
+  --bg-page: #F8F6F1;           /* Warm cream, not pure white */
+  --bg-canvas: #F2EFE8;          /* Slightly darker cream for contrast */
+  --bg-surface: #FDFCFA;         /* Raised surfaces, subtle warmth */
+  --bg-surface-hover: #F5F3ED;
+  --bg-surface-raised: #FEFDFB;
   
   /* Borders */
   --border-subtle: #E8E6E0;

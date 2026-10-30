@@ -47,6 +47,7 @@ describe("day session contracts", () => {
       dayNumber: 1,
       effectiveDay: 1,
       phase: "AMYGDALA_BYPASS",
+      subskill: { id: "s1", title: "Основа", description: "Начальный поднавык." },
       dailyBudgetSeconds: 120,
       creditedSecondsBefore: 0,
       projectedCreditedSeconds: 120,

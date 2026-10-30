@@ -89,3 +89,17 @@
 .notice-banner span{font-size:14px;line-height:10px;color:#999}
 @keyframes pulse{0%,100%{opacity:.45;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
 @media(max-width:680px){.catalog-actions{gap:5px}.button-create,.button-outline{padding:8px 7px;font-size:8px}.create-fields{grid-template-columns:1fr}.create-fields .button-primary{justify-self:start}.create-roadmap{padding:14px}}
+
+/* Session details extend the existing task card; they do not alter TaskNode. */
+.task-node.has-session-data{height:auto;min-height:210px}
+.task-node.has-session-data .task-card-content{height:auto;min-height:208px;align-items:flex-start;padding-top:18px;padding-bottom:18px}
+.task-node.has-session-data .task-copy{max-width:none;flex:1;align-self:stretch}
+.task-node.has-session-data .task-controls{padding-top:2px}
+.task-session-details{margin-top:10px;display:grid;gap:6px;min-width:0}
+.task-session-tags{display:flex;flex-wrap:wrap;gap:6px}
+.task-session-role,.task-session-icnu{display:inline-flex;align-items:center;padding:3px 8px;border:1px solid var(--border);border-radius:999px;background:var(--surface-hover);color:var(--text-muted);font-size:10px;line-height:1.3}
+.task-session-icnu{border-color:color-mix(in srgb,var(--sage) 35%,var(--border));color:var(--sage-dark)}
+.task-session-instruction,.task-session-evidence{margin:0;color:var(--text);font:inherit;font-size:12px;line-height:1.45;overflow-wrap:anywhere}
+.task-session-evidence{color:var(--text-muted);font-size:11px}
+.task-session-evidence strong{color:var(--text)}
+@media(max-width:760px){.task-node.has-session-data{height:auto;min-height:220px}.task-node.has-session-data .task-card-content{height:auto;min-height:218px;padding:15px;gap:8px}.task-session-instruction{font-size:11px}}

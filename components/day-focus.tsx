@@ -3,16 +3,35 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ReactFlow, Background, Controls, Handle, MarkerType, Position, getBezierPath, useReactFlow, type Edge, type EdgeProps, type Node, type NodeProps } from "@xyflow/react";
 import { useKaizenStore } from "@/lib/store";
-import { completedLeafXp, completesDayAt100Xp, splitTask, type TaskNode } from "@/lib/graph";
+import { completedLeafXp, completesDayAt100Xp, distributeXp, splitTask, type TaskNode } from "@/lib/graph";
+import type { Roadmap } from "@/lib/roadmaps";
 import { EnergyOrb } from "@/components/energy-orb";
 import { XPParticles } from "@/components/xp-particles";
 import { useKaizenSounds } from "@/lib/use-kaizen-sounds";
 import { mockSplitTask } from "@/lib/mock-split";
-import { isBackendEnabled, splitTaskApi } from "@/lib/api-client";
+import { generateDaySessionApi, isBackendEnabled, splitTaskApi } from "@/lib/api-client";
+import type { DailySessionResponse, GenerateDaySessionRequest, StoredDailySessionTask } from "@/lib/day-session-contract";
+import { adaptLegacyTaskGraphToSession, creditedSecondsForCompletedTasks } from "@/lib/day-session-store";
+import { getSchedulerPhase } from "@/lib/kaizenScheduler";
+import { ICNU_MODIFIERS } from "@/lib/icnuModifiers";
 
 const NODE_STEP_X = 250;
-const NODE_STEP_Y = 235;
-const SPLIT_STEP_Y = 180;
+const NODE_STEP_Y = 270;
+const SPLIT_STEP_Y = 260;
+const EMPTY_TASK_GRAPH: TaskNode[] = [];
+
+const COGNITIVE_ROLE_LABELS: Record<string, string> = {
+  SCAFFOLD_SETUP: "Подготовка",
+  MIND_SCULPT_ANCHOR: "Опорный образ",
+  MENTAL_HOOK: "Ментальная зацепка",
+  FAST_FEEDBACK_DRILL: "Быстрая практика",
+  INVERSION_PLAY: "Инверсия",
+  SPACED_RETRIEVAL: "Повторение",
+  SPEED_SPRINT: "Короткий спринт",
+  BIO_RESET: "Перезагрузка",
+  CHALLENGE_TWIST: "Новый вызов",
+  PROJECT_BUILD: "Сборка проекта",
+};
 
 type TaskData = {
   task: TaskNode;
@@ -22,12 +41,20 @@ type TaskData = {
   splitting: boolean;
   completing: boolean;
   current: boolean;
+  sessionLoading: boolean;
+  sessionTask?: StoredDailySessionTask;
 };
 
 function TaskCard({ data }: NodeProps<Node<TaskData>>) {
-  const { task, onComplete, onSkip, onSplit, splitting, completing, current } = data;
+  const { task, onComplete, onSkip, onSplit, splitting, completing, current, sessionLoading, sessionTask } = data;
   const [menuOpen, setMenuOpen] = useState(false);
   const completionAcceptedRef = useRef(false);
+  const durationSeconds = sessionTask?.durationSeconds ?? task.duration_minutes * 60;
+  const durationText = durationSeconds < 60
+    ? `${durationSeconds} сек`
+    : durationSeconds % 60 === 0
+      ? `${durationSeconds / 60} мин`
+      : `${Math.floor(durationSeconds / 60)} мин ${durationSeconds % 60} сек`;
   
   const handleComplete = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -46,7 +73,7 @@ function TaskCard({ data }: NodeProps<Node<TaskData>>) {
   
   return (
     <div 
-        className={`task-node ${task.status === "completed" ? "is-completed" : ""} ${task.status === "skipped" ? "is-skipped" : ""} ${completing ? "is-completing" : ""} ${current ? "is-current" : ""}`}
+        className={`task-node ${sessionTask ? "has-session-data" : ""} ${task.status === "completed" ? "is-completed" : ""} ${task.status === "skipped" ? "is-skipped" : ""} ${completing ? "is-completing" : ""} ${current ? "is-current" : ""}`}
     >
       <Handle type="target" position={Position.Top} />
       <div className="task-progress-fill" aria-hidden="true" />
@@ -54,7 +81,17 @@ function TaskCard({ data }: NodeProps<Node<TaskData>>) {
       <div className="task-card-content">
         <div className="task-copy">
           <div className="task-title">{task.title}</div>
-          <div className="task-duration">◷ &nbsp;{task.duration_minutes} минут</div>
+          <div className="task-duration">◷ &nbsp;{durationText}</div>
+          {sessionTask && (
+            <div className="task-session-details">
+              <div className="task-session-tags">
+                <span className="task-session-role">{COGNITIVE_ROLE_LABELS[sessionTask.cognitiveRole] ?? sessionTask.cognitiveRole}</span>
+                <span className="task-session-icnu">{sessionTask.icnuTrigger.label}</span>
+              </div>
+              <p className="task-session-instruction">{sessionTask.instruction}</p>
+              <p className="task-session-evidence"><strong>Проверка:</strong> {sessionTask.evidenceMethod}</p>
+            </div>
+          )}
         </div>
         
         <div className="task-controls nodrag nopan">
@@ -76,7 +113,7 @@ function TaskCard({ data }: NodeProps<Node<TaskData>>) {
               <div className="task-menu nodrag nopan">
                 <button
                   className="nodrag nopan"
-                  disabled={task.type !== "task" || task.status !== "pending" || splitting}
+                  disabled={sessionLoading || !current || task.type !== "task" || task.status !== "pending" || splitting}
                   onPointerDown={(event) => event.stopPropagation()}
                   onClick={(event) => {
                     event.stopPropagation();
@@ -95,7 +132,7 @@ function TaskCard({ data }: NodeProps<Node<TaskData>>) {
                 
                 <button
                   className="nodrag nopan"
-                  disabled={task.type !== "task" || task.status !== "pending"}
+                  disabled={sessionLoading || !current || task.type !== "task" || task.status !== "pending"}
                   onPointerDown={(event) => event.stopPropagation()}
                   onClick={(event) => {
                     event.stopPropagation();
@@ -112,7 +149,7 @@ function TaskCard({ data }: NodeProps<Node<TaskData>>) {
           <button
             className={`task-check nodrag nopan ${task.status === "completed" ? "checked" : ""}`}
             aria-label={task.status === "completed" ? "Задача выполнена" : "Отметить выполненной"}
-            disabled={task.type !== "task" || task.status !== "pending" || completing}
+            disabled={sessionLoading || !current || task.type !== "task" || task.status !== "pending" || completing}
             onPointerDown={(event) => event.stopPropagation()}
             onClick={handleComplete}
           >
@@ -138,17 +175,36 @@ function GrowingEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, t
   );
 }
 
+function calendarDaysMissed(lastCompletedAt?: string): number {
+  if (!lastCompletedAt) return 0;
+  const completed = new Date(lastCompletedAt);
+  if (Number.isNaN(completed.getTime())) return 0;
+  const start = Date.UTC(completed.getUTCFullYear(), completed.getUTCMonth(), completed.getUTCDate());
+  const today = new Date();
+  const current = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+  return Math.max(0, Math.floor((current - start) / 86_400_000) - 1);
+}
+
+function taskIsAvailable(graph: TaskNode[], taskId: string): boolean {
+  const task = graph.find((node) => node.id === taskId);
+  return Boolean(task && task.type === "task" && task.status === "pending" && task.dependencies.every((dependencyId) =>
+    graph.find((node) => node.id === dependencyId)?.status !== "pending"
+  ));
+}
+
 const nodeTypes = { taskCard: TaskCard };
 const edgeTypes = { growth: GrowingEdge };
 
 function arrangeGraph(
   graph: TaskNode[],
+  sessionTasks: ReadonlyMap<string, StoredDailySessionTask>,
   onComplete: (id: string, xp: number, x: number, y: number) => void,
   onSkip: (id: string) => void,
   onSplit: (id: string) => void,
   splittingId: string | null,
   completingId: string | null,
-  justCompletedId: string | null
+  justCompletedId: string | null,
+  sessionLoading: boolean
 ) {
   const available = graph.filter((task) => 
     task.type === "task" && 
@@ -195,6 +251,8 @@ function arrangeGraph(
         splitting: splittingId === task.id,
         completing: completingId === task.id,
         current: task.id === current?.id,
+        sessionLoading,
+        sessionTask: sessionTasks.get(task.id),
       },
       draggable: false,
       selectable: false,
@@ -251,20 +309,159 @@ function FocusCamera({ nodeIds }: { nodeIds: string[] }) {
   return null;
 }
 
-export function DayFocus({ roadmapTitle, dayNumber, storageKey, onBack }: { roadmapTitle: string; dayNumber: number; storageKey: string; onBack: () => void }) {
-  const graph = useKaizenStore((state) => state.focusGraphs[storageKey] ?? []);
+export function DayFocus({ roadmapTitle, roadmap, dayNumber, storageKey, onBack }: { roadmapTitle: string; roadmap: Roadmap; dayNumber: number; storageKey: string; onBack: () => void }) {
+  const storedGraph = useKaizenStore((state) => state.focusGraphs[storageKey]);
+  const graph = storedGraph ?? EMPTY_TASK_GRAPH;
+  const graphHasProgress = graph.some((task) => task.type === "container" || task.status !== "pending");
+  const daySession = useKaizenStore((state) => state.daySessions[storageKey]);
+  const persistedRequestKey = useKaizenStore((state) => state.daySessionRequestKeys[storageKey]);
+  const daySessions = useKaizenStore((state) => state.daySessions);
+  const allFocusGraphs = useKaizenStore((state) => state.focusGraphs);
   const soundEnabled = useKaizenStore((state) => state.soundEnabled);
   const updateFocusGraph = useKaizenStore((state) => state.updateFocusGraph);
+  const setDaySession = useKaizenStore((state) => state.setDaySession);
+  const setDaySessionWithGraph = useKaizenStore((state) => state.setDaySessionWithGraph);
+  const saveGeneratedDaySession = useKaizenStore((state) => state.saveGeneratedDaySession);
+  const setDaySessionRequestKey = useKaizenStore((state) => state.setDaySessionRequestKey);
+  const addDaySessionTaskMetadata = useKaizenStore((state) => state.addDaySessionTaskMetadata);
+  const markDaySessionCompleted = useKaizenStore((state) => state.markDaySessionCompleted);
   const { playTaskComplete, playDayComplete } = useKaizenSounds();
   const [splittingId, setSplittingId] = useState<string | null>(null);
   const [splitError, setSplitError] = useState<string | null>(null);
   const [completingId, setCompletingId] = useState<string | null>(null);
   const [justCompletedId, setJustCompletedId] = useState<string | null>(null);
   const [showParticles, setShowParticles] = useState<{ xp: number; x: number; y: number } | null>(null);
+  const [sessionLoading, setSessionLoading] = useState(() =>
+    !daySession && !graphHasProgress && (graph.length === 0 || isBackendEnabled())
+  );
+  const isSessionLoading = sessionLoading && !daySession && !graphHasProgress;
+  const sessionReady = Boolean(daySession) && !isSessionLoading;
+  const [sessionError, setSessionError] = useState<string | null>(null);
+  const requestKeyRef = useRef<string | null>(persistedRequestKey ?? null);
+  const requestInFlightRef = useRef(false);
+  const roadmapDay = roadmap.days.find((item) => item.dayNumber === dayNumber);
+  const metadataByTaskId = useMemo(() => new Map(daySession?.tasks.map((item) => [item.taskId, item]) ?? []), [daySession?.tasks]);
+
+  const generateSession = useCallback(async () => {
+    const graphIsExistingSession = graph.length > 0 && (graphHasProgress || !isBackendEnabled());
+    if (requestInFlightRef.current || daySession || graphIsExistingSession) return;
+    if (!roadmapDay) {
+      setSessionError("Не удалось найти этот день в маршруте.");
+      setSessionLoading(false);
+      return;
+    }
+
+    requestInFlightRef.current = true;
+    setSessionLoading(true);
+    setSessionError(null);
+    try {
+      if (!isBackendEnabled()) {
+        if (roadmapDay.tasks.length === 0) throw new Error("Для этого дня ещё нет задач. Попробуй открыть его позже.");
+        const ids = roadmapDay.tasks.map(() => crypto.randomUUID());
+        const weights = distributeXp(100, roadmapDay.tasks.length);
+        const demoGraph: TaskNode[] = roadmapDay.tasks.map((title, index) => ({
+          id: ids[index],
+          parent_id: null,
+          type: "task",
+          status: "pending",
+          title,
+          duration_minutes: Math.max(1, Math.floor(120 / roadmapDay.tasks.length / 60)),
+          xp_weight: weights[index],
+          dependencies: index === 0 ? [] : [ids[index - 1]],
+        }));
+        const legacySession = adaptLegacyTaskGraphToSession({
+          roadmapId: roadmap.id,
+          roadmapTitle: roadmap.title,
+          dayNumber,
+          dayTitle: roadmapDay.title,
+          subskillId: roadmapDay.subskillId,
+          subskillDescription: roadmap.subskills?.find((item) => item.id === roadmapDay.subskillId)?.description,
+          graph: demoGraph,
+        });
+        setDaySessionWithGraph(storageKey, legacySession, demoGraph);
+        return;
+      }
+
+      const completedSessions = Object.entries(daySessions)
+        .filter(([key, session]) => key.startsWith(`${roadmap.id}:`) && session.completedAt)
+        .sort(([, left], [, right]) => (left.completedAt ?? "").localeCompare(right.completedAt ?? ""));
+      const lastCompleted = completedSessions.at(-1)?.[1];
+      const effectiveDay = Math.min(66, (lastCompleted?.effectiveDay ?? 0) + 1);
+      const daysMissed = calendarDaysMissed(lastCompleted?.completedAt);
+      const sessionHistory = Object.entries(daySessions)
+        .filter(([key]) => key.startsWith(`${roadmap.id}:`))
+        .map(([key, session]) => {
+          const historyGraph = allFocusGraphs[key] ?? [];
+          return {
+            effectiveDay: session.effectiveDay,
+            dayNumber: session.dayNumber,
+            completed: Boolean(session.completedAt) && completedLeafXp(historyGraph) >= 100,
+            subskillId: session.subskill.id,
+            subskillTitle: session.subskill.title,
+            subskillDescription: session.subskill.description,
+            creditedSeconds: creditedSecondsForCompletedTasks(session, historyGraph),
+          };
+        });
+      const subskill = roadmap.subskills?.find((item) => item.id === roadmapDay.subskillId);
+      const currentSubskill = {
+        id: subskill?.id ?? roadmapDay.subskillId ?? `legacy-day-${dayNumber}`,
+        title: subskill?.title ?? roadmapDay.title,
+        description: subskill?.description ?? roadmap.description,
+      };
+      const request: GenerateDaySessionRequest = {
+        roadmapId: roadmap.id,
+        roadmapTitle: roadmap.title,
+        roadmapDescription: roadmap.description,
+        goal: roadmap.title,
+        lovableProject: roadmap.lovableProject,
+        targetPerformanceLevel: roadmap.targetPerformanceLevel,
+        dayNumber,
+        dayTitle: roadmapDay.title,
+        subskill: currentSubskill,
+        effectiveDay,
+        phase: daysMissed >= 2 ? "RSD_RECOVERY" : getSchedulerPhase(effectiveDay),
+        daysMissed,
+        wasTooHard: false,
+        sessionHistory,
+        usedModifierIds: [...new Set(Object.entries(daySessions)
+          .filter(([key]) => key.startsWith(`${roadmap.id}:`))
+          .flatMap(([, session]) => session.tasks.map((item) => item.icnuTrigger.id)))],
+      };
+      const requestKey = requestKeyRef.current ?? persistedRequestKey ?? crypto.randomUUID();
+      requestKeyRef.current = requestKey;
+      setDaySessionRequestKey(storageKey, requestKey);
+      const generated: DailySessionResponse = await generateDaySessionApi(request, requestKey);
+      saveGeneratedDaySession(storageKey, generated);
+      requestKeyRef.current = null;
+    } catch (error) {
+      setSessionError(error instanceof Error ? error.message : "Не удалось загрузить задачи. Попробуй ещё раз.");
+    } finally {
+      requestInFlightRef.current = false;
+      setSessionLoading(false);
+    }
+  }, [allFocusGraphs, dayNumber, daySession, daySessions, graph.length, graphHasProgress, persistedRequestKey, roadmap, roadmapDay, saveGeneratedDaySession, setDaySessionRequestKey, setDaySessionWithGraph, storageKey]);
+
+  useEffect(() => {
+    if (daySession) return;
+    if (graph.length > 0 && (graphHasProgress || !isBackendEnabled())) {
+      const legacySession = adaptLegacyTaskGraphToSession({
+        roadmapId: roadmap.id,
+        roadmapTitle: roadmap.title,
+        dayNumber,
+        dayTitle: roadmapDay?.title ?? `День ${dayNumber}`,
+        subskillId: roadmapDay?.subskillId,
+        subskillDescription: roadmap.subskills?.find((item) => item.id === roadmapDay?.subskillId)?.description,
+        graph,
+      });
+      setDaySession(storageKey, legacySession);
+      return;
+    }
+    const timer = window.setTimeout(() => { void generateSession(); }, 0);
+    return () => window.clearTimeout(timer);
+  }, [dayNumber, daySession, generateSession, graph, graphHasProgress, roadmap.id, roadmap.title, roadmap.subskills, roadmapDay, setDaySession, storageKey]);
   
   const onComplete = useCallback((id: string, xp: number, sourceX: number, sourceY: number) => {
-    const task = graph.find((item) => item.id === id);
-    if (!task || task.type !== "task" || task.status !== "pending") return;
+    if (!sessionReady || !taskIsAvailable(graph, id)) return;
     const completesDay = completesDayAt100Xp(graph, id);
     setCompletingId(id);
     setJustCompletedId(id);
@@ -278,6 +475,7 @@ export function DayFocus({ roadmapTitle, dayNumber, storageKey, onBack }: { road
       updateFocusGraph(storageKey, graph.map((task) => 
         task.id === id ? { ...task, status: "completed" } : task
       ));
+      if (completesDay) markDaySessionCompleted(storageKey, new Date().toISOString());
       setCompletingId(null);
       
       // Show XP particles
@@ -285,18 +483,18 @@ export function DayFocus({ roadmapTitle, dayNumber, storageKey, onBack }: { road
       setTimeout(() => setShowParticles(null), 1300);
       setTimeout(() => setJustCompletedId(null), 800);
     }, 600);
-  }, [graph, playDayComplete, playTaskComplete, soundEnabled, storageKey, updateFocusGraph]);
+  }, [graph, markDaySessionCompleted, playDayComplete, playTaskComplete, sessionReady, soundEnabled, storageKey, updateFocusGraph]);
   
-  const onSkip = useCallback((id: string) => 
-    updateFocusGraph(storageKey, graph.map((task) => 
+  const onSkip = useCallback((id: string) => {
+    if (!sessionReady || !taskIsAvailable(graph, id)) return;
+    updateFocusGraph(storageKey, graph.map((task) =>
       task.id === id ? { ...task, status: "skipped" } : task
-    )), 
-    [graph, storageKey, updateFocusGraph]
-  );
+    ));
+  }, [graph, sessionReady, storageKey, updateFocusGraph]);
   
   const onSplit = useCallback(async (id: string) => {
     const parent = graph.find((task) => task.id === id);
-    if (!parent || parent.type !== "task" || parent.status !== "pending") return;
+    if (!sessionReady || !parent || parent.type !== "task" || !taskIsAvailable(graph, id)) return;
     setSplittingId(id);
     setSplitError(null);
     
@@ -312,16 +510,28 @@ export function DayFocus({ roadmapTitle, dayNumber, storageKey, onBack }: { road
         isBackendEnabled() ? () => serverTasks[serverIdIndex++].id : undefined,
       );
       updateFocusGraph(storageKey, candidate);
+      const parentMetadata = daySession?.tasks.find((task) => task.taskId === parent.id);
+      const childrenMetadata: StoredDailySessionTask[] = candidate
+        .filter((node) => node.parent_id === parent.id && node.type === "task")
+        .map((child) => ({
+          taskId: child.id,
+          durationSeconds: child.duration_minutes * 60,
+          cognitiveRole: parentMetadata?.cognitiveRole ?? "FAST_FEEDBACK_DRILL",
+          icnuTrigger: parentMetadata?.icnuTrigger ?? ICNU_MODIFIERS[0],
+          instruction: child.title,
+          evidenceMethod: `Проверь результат шага «${child.title}».`,
+        }));
+      addDaySessionTaskMetadata(storageKey, childrenMetadata);
     } catch (error) {
       setSplitError(error instanceof Error ? error.message : "Не удалось раздробить задачу. Попробуй ещё раз.");
     } finally {
       setSplittingId(null);
     }
-  }, [graph, storageKey, updateFocusGraph]);
+  }, [addDaySessionTaskMetadata, daySession, graph, sessionReady, storageKey, updateFocusGraph]);
   
   const { nodes, edges } = useMemo(() => 
-    arrangeGraph(graph, onComplete, onSkip, onSplit, splittingId, completingId, justCompletedId),
-    [graph, onComplete, onSkip, onSplit, splittingId, completingId, justCompletedId]
+    arrangeGraph(graph, metadataByTaskId, onComplete, onSkip, onSplit, splittingId, completingId, justCompletedId, !sessionReady),
+    [graph, metadataByTaskId, onComplete, onSkip, onSplit, splittingId, completingId, justCompletedId, sessionReady]
   );
   
   const xp = completedLeafXp(graph);
@@ -367,12 +577,36 @@ export function DayFocus({ roadmapTitle, dayNumber, storageKey, onBack }: { road
           </button>
         </div>
       )}
+
+      {isSessionLoading && graph.length > 0 && (
+        <div className="focus-hint" role="status" aria-live="polite">
+          <span className="split-spinner" aria-hidden="true" /> Обновляем сессию дня…
+        </div>
+      )}
+      {sessionError && graph.length > 0 && (
+        <div className="split-error" role="alert">
+          <span>{sessionError}</span>
+          <button type="button" onClick={() => void generateSession()}>Повторить</button>
+        </div>
+      )}
       
       <div className="flow-stage" data-testid="task-graph" data-node-count={nodes.length}>
-        {graphMissing ? (
+        {graphMissing && isSessionLoading ? (
+          <div className="graph-empty" role="status" aria-live="polite">
+            <span className="split-spinner" aria-hidden="true" />
+            <strong>Готовим сессию дня…</strong>
+            <span>Подбираем короткие шаги для этого поднавыка.</span>
+          </div>
+        ) : graphMissing && sessionError ? (
           <div className="graph-empty" role="alert">
-            <strong>Не удалось восстановить задачи этого дня</strong>
-            <span>Вернись к карте и открой день ещё раз.</span>
+            <strong>Не удалось загрузить задачи</strong>
+            <span>{sessionError}</span>
+            <button type="button" onClick={() => void generateSession()}>Повторить</button>
+          </div>
+        ) : graphMissing ? (
+          <div className="graph-empty" role="alert">
+            <strong>Сессия сохранена, но граф не найден</strong>
+            <span>Вернись к карте и открой день ещё раз. Прогресс не перезаписан.</span>
             <button type="button" onClick={onBack}>Вернуться к карте</button>
           </div>
         ) : (
