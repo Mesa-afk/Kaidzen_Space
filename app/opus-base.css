@@ -61,21 +61,28 @@ button {
   cursor: pointer;
 }
 
-/* === BUTTONS === */
+/* === BUTTONS — M3 Interactive Spec === */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
+  height: 40px;
+  padding: 0 24px;
   border: none;
-  border-radius: var(--radius-md);
-  font-size: var(--text-base);
+  border-radius: 9999px;       /* M3 Pill shape */
+  font-size: 14px;
   font-weight: 500;
+  letter-spacing: 0.1px;
   line-height: 1;
   cursor: pointer;
-  transition: all var(--transition-fast);
   white-space: nowrap;
+  transition:
+    background-color 200ms cubic-bezier(0.2, 0, 0, 1),
+    color 150ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease,
+    transform 100ms ease;
 }
 
 .btn:disabled {
@@ -84,16 +91,30 @@ button {
 }
 
 .btn-primary {
+  /* Rest: graphite surface + outline */
   background: var(--accent-primary);
   color: var(--text-on-accent);
+  border: 1px solid transparent;
 }
 
 .btn-primary:hover:not(:disabled) {
+  /* Hover: lightened lavender bg + white text + purple glow */
   background: var(--accent-primary-hover);
+  color: var(--text-on-accent);
+  box-shadow: 0 4px 14px rgba(208, 188, 255, 0.28);
 }
 
 .btn-primary:active:not(:disabled) {
+  /* Active: deeper purple + scale down */
   background: var(--accent-primary-active);
+  color: var(--text-on-accent);
+  box-shadow: 0 2px 6px rgba(208, 188, 255, 0.2);
+  transform: scale(0.98);
+}
+
+.btn-primary:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
 }
 
 .btn-secondary {
@@ -107,14 +128,25 @@ button {
   border-color: var(--border-strong);
 }
 
+.btn-secondary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
 .btn-ghost {
   background: transparent;
   color: var(--text-secondary);
+  border: 1px solid var(--border-medium);
+  border-radius: 9999px;
 }
 
 .btn-ghost:hover:not(:disabled) {
   background: var(--bg-surface-hover);
   color: var(--text-primary);
+  box-shadow: 0 4px 14px rgba(208, 188, 255, 0.12);
+}
+
+.btn-ghost:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .btn-sm {
@@ -127,7 +159,7 @@ button {
   font-size: var(--text-lg);
 }
 
-/* === INPUT === */
+/* === INPUT — M3 Dark Spec === */
 .input {
   width: 100%;
   padding: var(--space-3) var(--space-4);
@@ -136,30 +168,36 @@ button {
   border-radius: var(--radius-md);
   font-size: var(--text-base);
   color: var(--text-primary);
-  transition: all var(--transition-fast);
+  transition:
+    border-color 200ms cubic-bezier(0.2, 0, 0, 1),
+    box-shadow 200ms cubic-bezier(0.2, 0, 0, 1);
 }
 
 .input:focus {
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px var(--accent-primary)22;
+  border-width: 2px;
+  box-shadow: 0 0 0 3px rgba(208, 188, 255, 0.15);
 }
 
 .input::placeholder {
   color: var(--text-tertiary);
 }
 
-/* === CARD === */
+/* === CARD — M3 Surface Container === */
 .card {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  transition: all var(--transition-base);
+  border-radius: 16px;
+  transition:
+    border-color 200ms cubic-bezier(0.2, 0, 0, 1),
+    box-shadow 200ms cubic-bezier(0.2, 0, 0, 1),
+    transform 200ms cubic-bezier(0.2, 0, 0, 1);
 }
 
 .card-hover:hover {
   border-color: var(--border-medium);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   transform: translateY(-2px);
 }
 
@@ -212,4 +250,83 @@ button {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* =============================================
+   M3 DARK THEME — Button Overrides
+   Rest: graphite surface → Hover: lavender
+   ============================================= */
+[data-theme="dark"] .btn-primary {
+  /* Passive: graphite surface with outline, light text */
+  background: #23262B;              /* sys-surface-container-high */
+  color: #E2E2E6;                   /* sys-on-surface */
+  border: 1px solid rgba(208, 188, 255, 0.25);
+}
+
+[data-theme="dark"] .btn-primary:hover:not(:disabled) {
+  /* Hover: lavender fill, white text, purple glow */
+  background: #DFCFFF;              /* sys-primary-hover */
+  color: #FFFFFF;                   /* sys-text-bright */
+  border-color: transparent;
+  box-shadow: 0 4px 14px rgba(208, 188, 255, 0.28);
+}
+
+[data-theme="dark"] .btn-primary:active:not(:disabled) {
+  /* Active/Pressed: deeper purple, white text, slight squeeze */
+  background: #B496F8;              /* sys-primary-active */
+  color: #FFFFFF;
+  border-color: transparent;
+  box-shadow: 0 2px 6px rgba(208, 188, 255, 0.2);
+  transform: scale(0.98);
+}
+
+[data-theme="dark"] .btn-primary:focus-visible {
+  outline: 2px solid #D0BCFF;       /* sys-primary */
+  outline-offset: 2px;
+}
+
+/* Secondary button in dark — graphite with subtle outline */
+[data-theme="dark"] .btn-secondary {
+  background: #1D2024;              /* sys-surface-container */
+  color: #E2E2E6;
+  border: 1px solid #3E4148;        /* sys-outline */
+}
+
+[data-theme="dark"] .btn-secondary:hover:not(:disabled) {
+  background: #23262B;              /* sys-surface-container-high */
+  border-color: #4A4D54;
+}
+
+/* Ghost button in dark */
+[data-theme="dark"] .btn-ghost {
+  background: transparent;
+  color: #909299;
+  border: 1px solid #3E4148;
+}
+
+[data-theme="dark"] .btn-ghost:hover:not(:disabled) {
+  background: #23262B;
+  color: #E2E2E6;
+  border-color: rgba(208, 188, 255, 0.25);
+}
+
+/* Input in dark — uses surface-container-low background */
+[data-theme="dark"] .input {
+  background: #16181B;              /* sys-surface-container-low */
+  border-color: #3E4148;            /* sys-outline */
+  color: #E2E2E6;
+}
+
+[data-theme="dark"] .input::placeholder {
+  color: #909299;                   /* sys-on-surface-variant */
+}
+
+[data-theme="dark"] .input:focus {
+  border-color: #D0BCFF;            /* sys-primary */
+  box-shadow: 0 0 0 3px rgba(208, 188, 255, 0.15);
+}
+
+[data-theme="dark"] select.input option {
+  background-color: #1D2024;
+  color: #E2E2E6;
 }

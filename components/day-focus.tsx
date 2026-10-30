@@ -295,7 +295,7 @@ function arrangeGraph(
       source: dependency,
       target: task.id,
       type: "growth",
-      markerEnd: { type: MarkerType.ArrowClosed, color: "#7a9068" },
+      markerEnd: { type: MarkerType.ArrowClosed, color: "currentColor" },
       data: { active: justCompletedId === dependency },
     })));
   if (splitParent && splitChildren[0] && visibleIds.has(splitChildren[0].id)) {
@@ -304,7 +304,7 @@ function arrangeGraph(
       source: splitParent.id,
       target: splitChildren[0].id,
       type: "growth",
-      markerEnd: { type: MarkerType.ArrowClosed, color: "#7a9068" },
+      markerEnd: { type: MarkerType.ArrowClosed, color: "currentColor" },
       data: { active: false },
     });
   }
@@ -639,7 +639,7 @@ export function DayFocus({ roadmapTitle, roadmap, dayNumber, storageKey, onBack 
             proOptions={{ hideAttribution: true }}
         >
           <FocusCamera nodeIds={cameraNodeIds} />
-            <Background color="#dfe6d8" gap={22} size={1} />
+            <Background color="var(--canvas-dot)" gap={22} size={1} />
             <Controls showInteractive={false} />
           </ReactFlow>
         )}

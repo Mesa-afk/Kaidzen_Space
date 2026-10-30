@@ -609,4 +609,80 @@
   }
 }
 
-/* Continue in next file... */
+/* =============================================
+   M3 DARK THEME — Focus Mode & Task Overrides
+   ============================================= */
+[data-theme="dark"] .task-node {
+  background: #1D2024;
+  border: 1px solid #292B30;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="dark"] .task-node.is-completed {
+  background: #1A2318;
+  border-color: #8BA888;
+  box-shadow: 0 0 0 3px #1A2318, 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .task-node.is-skipped {
+  background: #16181B;
+  border-color: #292B30;
+}
+
+[data-theme="dark"] .task-check {
+  background: #23262B;
+  border: 1.5px solid #3E4148;
+}
+
+[data-theme="dark"] .task-check:hover:not(:disabled) {
+  background: #DFCFFF;
+  border-color: transparent;
+  box-shadow: 0 4px 14px rgba(208, 188, 255, 0.28);
+}
+
+[data-theme="dark"] .task-check:hover:not(:disabled) svg path {
+  stroke: #111315;
+}
+
+[data-theme="dark"] .task-check.checked {
+  background: #D0BCFF;
+  border-color: #D0BCFF;
+}
+
+[data-theme="dark"] .task-check.checked svg path {
+  stroke: #111315;
+}
+
+[data-theme="dark"] .metro-card {
+  background: #1D2024;
+  border-color: #292B30;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .metro-card:hover {
+  border-color: #D0BCFF;
+  box-shadow: 0 4px 14px rgba(208, 188, 255, 0.15);
+}
+
+[data-theme="dark"] .metro-card.completed {
+  background: #1A2318;
+  border-color: #8BA888;
+}
+
+[data-theme="dark"] .metro-dot {
+  background: #23262B;
+  border-color: #3E4148;
+  box-shadow: 0 0 0 6px #111315, 0 3px 12px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .metro-dot.completed {
+  background: #8BA888;
+  border-color: #D0BCFF;
+  box-shadow: 0 0 0 4px #1A2318;
+}
+
+[data-theme="dark"] .flow-stage {
+  border-color: #292B30;
+  background-color: #0E0F11;
+  background-image: radial-gradient(#2A2D33 0.7px, transparent 0.7px);
+}

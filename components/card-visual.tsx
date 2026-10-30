@@ -18,49 +18,49 @@ function getGradientColors(color: string | undefined, isDark: boolean) {
   const colorMap: Record<string, { light: [string, string]; dark: [string, string] }> = {
     peach: {
       light: ["#FFE5D9", "#FFDDD2"],
-      dark: ["#4A3832", "#3A2822"],
+      dark: ["#2A1F1A", "#231812"],
     },
     lavender: {
       light: ["#E6E6FA", "#D8D8F8"],
-      dark: ["#3A3A52", "#2A2A42"],
+      dark: ["#1D1A2D", "#161228"],
     },
     mint: {
       light: ["#D5F4E6", "#C8F0DD"],
-      dark: ["#2A4A3A", "#1A3A2A"],
+      dark: ["#141D16", "#101812"],
     },
     sky: {
       light: ["#DBEAFE", "#BFDBFE"],
-      dark: ["#2A3A4A", "#1A2A3A"],
+      dark: ["#141A22", "#101620"],
     },
     amber: {
       light: ["#FEF3C7", "#FDE68A"],
-      dark: ["#4A3A1A", "#3A2A0A"],
+      dark: ["#221D0E", "#1D1808"],
     },
     rose: {
       light: ["#FFE4E6", "#FECDD3"],
-      dark: ["#4A2A2A", "#3A1A1A"],
+      dark: ["#221415", "#1D0E0E"],
     },
     sage: {
       light: ["#E8F4ED", "#D5E8DD"],
-      dark: ["#2A3A30", "#1A2A20"],
+      dark: ["#141D16", "#101812"],
     },
   };
 
   const defaultGradient = isDark
-    ? ["#2F333B", "#252930"]
+    ? ["#1D2024", "#16181B"]         /* M3 sys-surface-container / low */
     : ["#F9F8F4", "#F0EFE8"];
 
   const colors = colorMap[color || ""] || { light: defaultGradient, dark: defaultGradient };
   return isDark ? colors.dark : colors.light;
 }
 
-export function CardVisual({ emoji, color, themeMode = "light" }: CardVisualProps) {
+export function CardVisual({ emoji, color, themeMode = "dark" }: CardVisualProps) {
   const isDark = themeMode === "dark";
   const [gradStart, gradEnd] = getGradientColors(color, isDark);
   
-  // Accent color for geometric shapes
-  const accentColor = isDark ? "#A78BBF" : "#6B4E8F";
-  const accentOpacity = isDark ? 0.15 : 0.12;
+  // Accent color for geometric shapes — M3 lavender/purple
+  const accentColor = isDark ? "#D0BCFF" : "#6B4E8F";
+  const accentOpacity = isDark ? 0.12 : 0.12;
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>

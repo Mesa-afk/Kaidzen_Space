@@ -30,8 +30,8 @@ export function HeroMeadow() {
         </linearGradient>
         
         <linearGradient id="night-sky" x1="800" y1="0" x2="800" y2="320" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#2a3442" />
-          <stop offset="100%" stopColor="#3d4a5c" />
+          <stop offset="0%" stopColor="#16181B" />
+          <stop offset="100%" stopColor="#23262B" />
         </linearGradient>
         
         <radialGradient id="sun-glow" cx="50%" cy="50%" r="50%">
@@ -40,8 +40,8 @@ export function HeroMeadow() {
         </radialGradient>
         
         <radialGradient id="moon-glow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#e8edf5" stopOpacity="1" />
-          <stop offset="100%" stopColor="#c5d0e0" stopOpacity="0.7" />
+          <stop offset="0%" stopColor="#DFCFFF" stopOpacity="0.95" />
+          <stop offset="100%" stopColor="#D0BCFF" stopOpacity="0.5" />
         </radialGradient>
       </defs>
       
@@ -50,15 +50,15 @@ export function HeroMeadow() {
         <>
           {/* Moon */}
           <circle cx="800" cy="88" r="42" fill="url(#moon-glow)" opacity="0.95" />
-          <circle cx="800" cy="88" r="42" fill="none" stroke="#b8c5d6" strokeWidth="1" opacity="0.3" />
+          <circle cx="800" cy="88" r="42" fill="none" stroke="#D0BCFF" strokeWidth="1" opacity="0.4" />
           
           {/* Stars */}
-          <circle cx="200" cy="40" r="1.5" fill="#d4dce8" opacity="0.8" />
-          <circle cx="500" cy="60" r="1" fill="#d4dce8" opacity="0.7" />
-          <circle cx="840" cy="35" r="1.2" fill="#d4dce8" opacity="0.6" />
-          <circle cx="1080" cy="55" r="0.8" fill="#d4dce8" opacity="0.75" />
-          <circle cx="1440" cy="42" r="1.3" fill="#d4dce8" opacity="0.65" />
-          <circle cx="1140" cy="105" r="0.9" fill="#d4dce8" opacity="0.7" />
+          <circle cx="200" cy="40" r="1.5" fill="#E2E2E6" opacity="0.8" />
+          <circle cx="500" cy="60" r="1" fill="#E2E2E6" opacity="0.7" />
+          <circle cx="840" cy="35" r="1.2" fill="#E2E2E6" opacity="0.6" />
+          <circle cx="1080" cy="55" r="0.8" fill="#E2E2E6" opacity="0.75" />
+          <circle cx="1440" cy="42" r="1.3" fill="#E2E2E6" opacity="0.65" />
+          <circle cx="1140" cy="105" r="0.9" fill="#E2E2E6" opacity="0.7" />
         </>
       ) : (
         <>
@@ -74,8 +74,8 @@ export function HeroMeadow() {
         cy="240"
         rx="680"
         ry="100"
-        fill={isDark ? "#4a5a52" : "#a8b89f"}
-        opacity={isDark ? "0.6" : "0.4"}
+        fill={isDark ? "#1D2024" : "#a8b89f"}
+        opacity={isDark ? "0.7" : "0.4"}
       />
       
       <ellipse
@@ -83,8 +83,8 @@ export function HeroMeadow() {
         cy="260"
         rx="520"
         ry="85"
-        fill={isDark ? "#526554" : "#98a88d"}
-        opacity={isDark ? "0.5" : "0.35"}
+        fill={isDark ? "#23262B" : "#98a88d"}
+        opacity={isDark ? "0.6" : "0.35"}
       />
       
       {/* Middle hills */}
@@ -93,7 +93,7 @@ export function HeroMeadow() {
         cy="270"
         rx="600"
         ry="95"
-        fill={isDark ? "#5c6e5f" : "#8a9c7e"}
+        fill={isDark ? "#2A2D33" : "#8a9c7e"}
         opacity={isDark ? "0.7" : "0.55"}
       />
       
@@ -103,8 +103,8 @@ export function HeroMeadow() {
         cy="310"
         rx="1000"
         ry="120"
-        fill={isDark ? "#677a6a" : "#7a9068"}
-        opacity={isDark ? "0.85" : "0.75"}
+        fill={isDark ? "#1D2024" : "#7a9068"}
+        opacity={isDark ? "0.9" : "0.75"}
       />
       
       {/* Grass texture - small details */}
@@ -127,19 +127,19 @@ export function HeroMeadow() {
       
       {isDark && (
         <>
-          {/* Dark theme - muted flowers */}
-          <circle cx="160" cy="280" r="2.5" fill="#8a7a92" opacity="0.3" />
-          <circle cx="280" cy="290" r="2" fill="#92886e" opacity="0.25" />
-          <circle cx="400" cy="285" r="3" fill="#7a8a72" opacity="0.28" />
-          <circle cx="1120" cy="295" r="1.8" fill="#8a8272" opacity="0.25" />
+          {/* Dark theme - M3 Lavender accent flowers */}
+          <circle cx="160" cy="280" r="2.5" fill="#D0BCFF" opacity="0.45" />
+          <circle cx="280" cy="290" r="2" fill="#DFCFFF" opacity="0.4" />
+          <circle cx="400" cy="285" r="3" fill="#B496F8" opacity="0.4" />
+          <circle cx="1120" cy="295" r="1.8" fill="#D0BCFF" opacity="0.4" />
         </>
       )}
       
       {/* Foreground path/ground */}
       <path
          d="M 0 300 Q 400 295, 800 300 T 1600 300 L 1600 320 L 0 320 Z"
-        fill={isDark ? "#3d4a3e" : "#a8b89f"}
-        opacity={isDark ? "0.4" : "0.3"}
+        fill={isDark ? "#16181B" : "#a8b89f"}
+        opacity={isDark ? "0.6" : "0.3"}
       />
     </svg>
   );

@@ -120,6 +120,11 @@
   color: var(--text-on-accent);
 }
 
+.opus-nav-item.active:hover {
+  background: var(--accent-primary-hover);
+  box-shadow: 0 4px 14px rgba(208, 188, 255, 0.28);
+}
+
 .opus-nav-item-icon {
   width: 20px;
   height: 20px;
@@ -259,4 +264,28 @@
   .opus-content {
     padding: var(--space-6) var(--space-4);
   }
+}
+
+/* =============================================
+   M3 DARK THEME — Layout Overrides
+   ============================================= */
+[data-theme="dark"] .opus-brand-mark {
+  background: #D0BCFF;
+  color: #111315;
+}
+
+[data-theme="dark"] .opus-nav-item.active {
+  background: #D0BCFF;
+  color: #1D2024;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .opus-nav-item.active:hover {
+  background: #DFCFFF;
+  color: #111315;
+}
+
+[data-theme="dark"] .opus-profile-avatar {
+  background: #D0BCFF;
+  color: #111315;
 }

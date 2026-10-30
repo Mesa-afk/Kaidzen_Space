@@ -36,7 +36,7 @@ export const useKaizenStore = create<KaizenState>()(persist((set) => ({
   focusGraphs: {},
   daySessions: {},
   daySessionRequestKeys: {},
-  themeMode: "light",
+  themeMode: "dark",
   soundEnabled: true,
   likedRoadmapIds: [],
   addRoadmap: (roadmap) => set((state) => {
@@ -120,7 +120,7 @@ export const useKaizenStore = create<KaizenState>()(persist((set) => ({
       ...state,
       ...migrateDaySessionState(state),
       myRoadmaps: dedupeRoadmaps(state.myRoadmaps ?? []),
-      themeMode: state.themeMode ?? "light",
+      themeMode: state.themeMode ?? "dark",
       soundEnabled: state.soundEnabled ?? true,
       likedRoadmapIds: state.likedRoadmapIds ?? [],
     };

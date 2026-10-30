@@ -119,11 +119,18 @@
 .button-create,
 .button-primary,
 .button-outline {
-  padding: 12px 18px;
-  border-radius: var(--radius-md);
-  font-size: 13px;
+  padding: 10px 24px;
+  height: 40px;
+  border-radius: 9999px;            /* M3 Pill */
+  font-size: 14px;
   font-weight: 500;
-  transition: all var(--transition-fast);
+  letter-spacing: 0.1px;
+  transition:
+    background-color 200ms cubic-bezier(0.2, 0, 0, 1),
+    color 150ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease,
+    transform 100ms ease;
   white-space: nowrap;
   display: inline-flex;
   align-items: center;
@@ -144,12 +151,18 @@
 .button-primary {
   background: var(--primary);
   color: var(--primary-text);
-  border: 1px solid var(--primary);
+  border: 1px solid transparent;
 }
 
 .button-primary:hover {
   background: var(--primary-hover);
-  border-color: var(--primary-hover);
+  border-color: transparent;
+  box-shadow: 0 4px 14px rgba(208, 188, 255, 0.28);
+}
+
+.button-primary:active {
+  transform: scale(0.98);
+  box-shadow: 0 2px 6px rgba(208, 188, 255, 0.2);
 }
 
 .button-primary:disabled {
@@ -396,3 +409,60 @@
 }
 
 /* Continue in next file... */
+
+/* =============================================
+   M3 DARK THEME — Diamond Button Overrides
+   Rest: graphite surface → Hover: lavender
+   ============================================= */
+[data-theme="dark"] .button-primary {
+  background: #23262B;
+  color: #E2E2E6;
+  border: 1px solid rgba(208, 188, 255, 0.25);
+}
+
+[data-theme="dark"] .button-primary:hover {
+  background: #DFCFFF;
+  color: #FFFFFF;
+  border-color: transparent;
+  box-shadow: 0 4px 14px rgba(208, 188, 255, 0.28);
+}
+
+[data-theme="dark"] .button-primary:active {
+  background: #B496F8;
+  color: #FFFFFF;
+  border-color: transparent;
+  transform: scale(0.98);
+}
+
+[data-theme="dark"] .button-create {
+  background: #1D2024;
+  color: #E2E2E6;
+  border: 1px solid #3E4148;
+}
+
+[data-theme="dark"] .button-create:hover {
+  background: #23262B;
+  border-color: rgba(208, 188, 255, 0.25);
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .button-outline {
+  background: #1D2024;
+  color: #E2E2E6;
+  border: 1px solid #3E4148;
+}
+
+[data-theme="dark"] .button-outline:hover {
+  background: #23262B;
+  border-color: #4A4D54;
+}
+
+[data-theme="dark"] .button-remove {
+  background: #2D1515;
+  color: #FCA5A5;
+  border-color: #7F1D1D;
+}
+
+[data-theme="dark"] .button-remove:hover {
+  background: #3A1F1F;
+}
