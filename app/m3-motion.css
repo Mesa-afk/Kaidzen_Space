@@ -5,7 +5,7 @@
    Импортируется ПОСЛЕДНИМ в app/layout.tsx и только добавляет
    движение, не меняя раскладку и цвета компонентов.
 
-   Принципы (Material Design 3 Motion + material_design_3_dark_theme_guide.md):
+   Принципы (Material Design 3 Motion + ai-context/material_design_3_dark_theme_guide.md):
    - Движение смысловое и спокойное: продукт для людей с СДВГ,
      фон и декорации не должны отвлекать от текущего шага.
    - Кривые M3: emphasized / emphasized-decelerate (вход),
