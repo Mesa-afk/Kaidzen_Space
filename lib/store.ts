@@ -5,6 +5,7 @@ import type { TaskNode } from "./graph";
 import type { DailySessionResponse, StoredDaySession } from "./day-session-contract";
 import { canReplaceUnstartedDayGraph, migrateDaySessionState, storeGeneratedDaySession } from "./day-session-store";
 import { formatDateKey } from "./progression";
+import type { AccountRecord, AccountsMap } from "./auth";
 
 export type ThemeMode = "light" | "dark";
 
@@ -52,6 +53,12 @@ type KaizenState = {
   likedRoadmapIds: string[]; // Track liked roadmap IDs
   userName: string;
   activeDates: string[];
+  /** Локальные аккаунты по email (lib/auth.ts). */
+  accounts: AccountsMap;
+  /** Email вошедшего пользователя; null — гостевой режим. */
+  currentUserEmail: string | null;
+  /** Аватар профиля: data URL уменьшенной картинки или null (буква имени). */
+  avatarDataUrl: string | null;
   addRoadmap: (roadmap: Roadmap) => void;
   removeRoadmap: (id: string) => void;
   setFocusGraph: (key: string, graph: TaskNode[]) => void;
@@ -68,6 +75,10 @@ type KaizenState = {
   toggleLike: (roadmapId: string) => void;
   setUserName: (name: string) => void;
   recordActivity: (dateStr?: string) => void;
+  registerAccount: (account: AccountRecord) => void;
+  loginAccount: (account: AccountRecord) => void;
+  logoutAccount: () => void;
+  setAvatar: (dataUrl: string | null) => void;
 };
 
 export const useKaizenStore = create<KaizenState>()(persist((set) => ({
@@ -80,7 +91,30 @@ export const useKaizenStore = create<KaizenState>()(persist((set) => ({
   likedRoadmapIds: [],
   userName: "Пользователь",
   activeDates: [],
-  setUserName: (name) => set({ userName: name.trim() || "Пользователь" }),
+  accounts: {},
+  currentUserEmail: null,
+  avatarDataUrl: null,
+  setUserName: (name) => set((state) => {
+    const trimmed = name.trim() || "Пользователь";
+    const account = state.currentUserEmail ? state.accounts[state.currentUserEmail] : undefined;
+    if (!account) return { userName: trimmed };
+    // Ник залогиненного пользователя живёт в записи аккаунта.
+    return {
+      userName: trimmed,
+      accounts: { ...state.accounts, [account.email]: { ...account, name: trimmed } },
+    };
+  }),
+  registerAccount: (account) => set((state) => ({
+    accounts: { ...state.accounts, [account.email]: account },
+    currentUserEmail: account.email,
+    userName: account.name,
+  })),
+  loginAccount: (account) => set({
+    currentUserEmail: account.email,
+    userName: account.name,
+  }),
+  logoutAccount: () => set({ currentUserEmail: null }),
+  setAvatar: (dataUrl) => set({ avatarDataUrl: dataUrl }),
   recordActivity: (dateStr) => set((state) => {
     const today = dateStr || formatDateKey(new Date());
     if (state.activeDates.includes(today)) return state;
@@ -159,7 +193,7 @@ export const useKaizenStore = create<KaizenState>()(persist((set) => ({
   })),
 }), {
   name: "kaizen-roadmaps",
-  version: 6,
+  version: 7,
   storage: createJSONStorage(getSafeStorage),
   migrate: (persistedState) => {
     const state = persistedState as KaizenState;
@@ -172,6 +206,9 @@ export const useKaizenStore = create<KaizenState>()(persist((set) => ({
       likedRoadmapIds: state.likedRoadmapIds ?? [],
       userName: state.userName ?? "Пользователь",
       activeDates: state.activeDates ?? [],
+      accounts: state.accounts ?? {},
+      currentUserEmail: state.currentUserEmail ?? null,
+      avatarDataUrl: state.avatarDataUrl ?? null,
     };
   },
 }));

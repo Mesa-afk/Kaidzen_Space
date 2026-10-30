@@ -14,6 +14,7 @@ import "./diamond-ui-extras.css";
 import "./roadmap-ui.css";
 import "./responsive-layout.css";
 import "@xyflow/react/dist/style.css";
+import "./auth.css";
 import "./m3-motion.css";
 import { ThemeInitializer } from "@/components/theme-initializer";
 import { M3Ripple } from "@/components/m3-ripple";
