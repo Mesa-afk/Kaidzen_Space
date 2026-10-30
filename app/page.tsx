@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { enhancedDemoRoadmaps } from "@/lib/mock-data";
 import { roadmapSourceId, type Roadmap } from "@/lib/roadmaps";
 import { useKaizenStore } from "@/lib/store";
@@ -47,6 +48,8 @@ export default function OpusHomePage() {
     setFocusGraph,
     userName,
     activeDates,
+    currentUserEmail,
+    avatarDataUrl,
   } = useKaizenStore();
   
   const totalXp = calculateTotalXp(focusGraphs);
@@ -269,7 +272,12 @@ export default function OpusHomePage() {
             title="Открыть профиль"
           >
             <div className="opus-profile-avatar">
-              {userName.slice(0, 1).toUpperCase() || "У"}
+              {avatarDataUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={avatarDataUrl} alt="" className="opus-profile-avatar-img" />
+              ) : (
+                userName.slice(0, 1).toUpperCase() || "У"
+              )}
             </div>
             <div className="opus-profile-info">
               <div className="opus-profile-name">{userName}</div>
@@ -279,6 +287,17 @@ export default function OpusHomePage() {
             </div>
           </button>
           
+          {!currentUserEmail && (
+            <div className="opus-auth-actions">
+              <Link href="/login" className="btn btn-secondary btn-sm">
+                Войти
+              </Link>
+              <Link href="/register" className="btn btn-ghost btn-sm">
+                Регистрация
+              </Link>
+            </div>
+          )}
+
           <div className="opus-settings-row">
             <button
               className="opus-settings-btn"

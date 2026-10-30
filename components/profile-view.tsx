@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useKaizenStore } from "@/lib/store";
 import { calculateLevel, calculateStreak } from "@/lib/progression";
 import { calculateTotalXp } from "@/lib/total-xp";
@@ -34,6 +35,15 @@ function useAnimatedNumber(target: number, durationMs = 900) {
   return value;
 }
 
+/** Карандаш Material (edit) — для смены ника и аватара. */
+function PencilIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+    </svg>
+  );
+}
+
 export function ProfileView({ onBack, onNavigateToCatalog }: ProfileViewProps) {
   const {
     userName,
@@ -41,10 +51,54 @@ export function ProfileView({ onBack, onNavigateToCatalog }: ProfileViewProps) {
     activeDates,
     focusGraphs,
     myRoadmaps,
+    avatarDataUrl,
+    setAvatar,
+    currentUserEmail,
+    logoutAccount,
   } = useKaizenStore();
 
   const [isEditingName, setIsEditingName] = useState(false);
   const [nameInput, setNameInput] = useState(userName);
+  const [avatarError, setAvatarError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setAvatarError("Нужен файл картинки (PNG, JPG, WebP).");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setAvatarError("Картинка больше 5 МБ — выберите поменьше.");
+      return;
+    }
+    try {
+      // Уменьшаем до квадрата 256×256: аватар живёт в localStorage вместе
+      // со всем стором, оригинал в несколько мегабайт туда не влезет.
+      const bitmap = await createImageBitmap(file);
+      const size = 256;
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Canvas 2d недоступен");
+      const surface = getComputedStyle(document.documentElement)
+        .getPropertyValue("--bg-surface-raised").trim() || "#23262B";
+      ctx.fillStyle = surface;
+      ctx.fillRect(0, 0, size, size);
+      const scale = Math.max(size / bitmap.width, size / bitmap.height);
+      const width = bitmap.width * scale;
+      const height = bitmap.height * scale;
+      ctx.drawImage(bitmap, (size - width) / 2, (size - height) / 2, width, height);
+      bitmap.close();
+      setAvatar(canvas.toDataURL("image/jpeg", 0.85));
+      setAvatarError("");
+    } catch {
+      setAvatarError("Не удалось загрузить картинку. Попробуйте другую.");
+    }
+  };
 
   const totalXp = calculateTotalXp(focusGraphs);
   const levelInfo = calculateLevel(totalXp);
@@ -80,11 +134,49 @@ export function ProfileView({ onBack, onNavigateToCatalog }: ProfileViewProps) {
 
       {/* User Header Card */}
       <div className="profile-header-card">
-        <div className="profile-avatar-large">
-          <span>{userName.slice(0, 1).toUpperCase() || "У"}</span>
-          <div className="profile-avatar-badge" title="Активный ученик">
-            ✨
+        <div className="profile-avatar-wrap">
+          <div className="profile-avatar-large">
+            {avatarDataUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={avatarDataUrl} alt="Аватар профиля" className="profile-avatar-img" />
+            ) : (
+              <span>{userName.slice(0, 1).toUpperCase() || "У"}</span>
+            )}
+            <div className="profile-avatar-badge" title="Активный ученик">
+              ✨
+            </div>
+            <button
+              type="button"
+              className="profile-avatar-edit"
+              onClick={() => fileInputRef.current?.click()}
+              title="Изменить аватар"
+              aria-label="Изменить аватар"
+            >
+              <PencilIcon />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={handleAvatarChange}
+            />
           </div>
+          {avatarDataUrl && (
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => {
+                setAvatar(null);
+                setAvatarError("");
+              }}
+            >
+              Убрать фото
+            </button>
+          )}
+          {avatarError && (
+            <p className="profile-avatar-error" role="alert">{avatarError}</p>
+          )}
         </div>
 
         <div className="profile-header-info">
@@ -118,17 +210,23 @@ export function ProfileView({ onBack, onNavigateToCatalog }: ProfileViewProps) {
                 <h1 className="profile-name">{userName}</h1>
                 <button
                   className="profile-edit-name-btn"
-                  onClick={() => setIsEditingName(true)}
+                  onClick={() => {
+                    setNameInput(userName);
+                    setIsEditingName(true);
+                  }}
                   title="Изменить имя"
                   aria-label="Изменить имя"
                 >
-                  ✏️
+                  <PencilIcon />
                 </button>
               </div>
             )}
           </div>
 
           <div className="profile-header-badges">
+            {currentUserEmail && (
+              <span className="profile-meta-pill">✉️ {currentUserEmail}</span>
+            )}
             <span className="profile-rank-pill">
               {levelInfo.title}
             </span>
@@ -270,8 +368,22 @@ export function ProfileView({ onBack, onNavigateToCatalog }: ProfileViewProps) {
         </div>
       </div>
 
-      {/* Call to action */}
+      {/* Call to action + аккаунт */}
       <div className="profile-footer-actions">
+        {currentUserEmail ? (
+          <button type="button" className="btn btn-secondary" onClick={logoutAccount}>
+            Выйти из аккаунта
+          </button>
+        ) : (
+          <>
+            <Link href="/login" className="btn btn-secondary">
+              Войти
+            </Link>
+            <Link href="/register" className="btn btn-ghost">
+              Создать аккаунт
+            </Link>
+          </>
+        )}
         <button className="btn btn-primary" onClick={onNavigateToCatalog}>
           Продолжить обучение →
         </button>
