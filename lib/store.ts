@@ -8,6 +8,40 @@ import { formatDateKey } from "./progression";
 
 export type ThemeMode = "light" | "dark";
 
+// В кросс-сайтовых iframe (превью-песочницы, Safari ITP) доступ к
+// localStorage может бросать SecurityError. Тогда persist деградирует до
+// in-memory хранилища: приложение работает, состояние просто не переживёт
+// перезагрузку. При доступном localStorage поведение прежнее.
+const memoryStorageMap = new Map<string, string>();
+let resolvedStorage: Storage | null = null;
+
+function getSafeStorage(): Storage {
+  if (resolvedStorage) return resolvedStorage;
+  try {
+    const storage = window.localStorage;
+    const probe = "__kaizen-storage-probe__";
+    storage.setItem(probe, "1");
+    storage.removeItem(probe);
+    resolvedStorage = storage;
+  } catch {
+    resolvedStorage = {
+      get length() {
+        return memoryStorageMap.size;
+      },
+      clear: () => memoryStorageMap.clear(),
+      getItem: (key: string) => memoryStorageMap.get(key) ?? null,
+      key: (index: number) => [...memoryStorageMap.keys()][index] ?? null,
+      removeItem: (key: string) => {
+        memoryStorageMap.delete(key);
+      },
+      setItem: (key: string, value: string) => {
+        memoryStorageMap.set(key, value);
+      },
+    };
+  }
+  return resolvedStorage;
+}
+
 type KaizenState = {
   myRoadmaps: Roadmap[];
   focusGraphs: Record<string, TaskNode[]>;
@@ -126,7 +160,7 @@ export const useKaizenStore = create<KaizenState>()(persist((set) => ({
 }), {
   name: "kaizen-roadmaps",
   version: 6,
-  storage: createJSONStorage(() => localStorage),
+  storage: createJSONStorage(getSafeStorage),
   migrate: (persistedState) => {
     const state = persistedState as KaizenState;
     return {
