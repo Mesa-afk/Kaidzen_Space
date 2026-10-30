@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useKaizenStore } from "@/lib/store";
 import { calculateLevel, calculateStreak } from "@/lib/progression";
 import { calculateTotalXp } from "@/lib/total-xp";
@@ -9,6 +9,30 @@ type ProfileViewProps = {
   onBack: () => void;
   onNavigateToCatalog: () => void;
 };
+
+/** Плавный count-up чисел профиля (кривая ease-out, как M3 emphasized-decelerate). */
+function useAnimatedNumber(target: number, durationMs = 900) {
+  const prefersReducedMotion =
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const [value, setValue] = useState(() => (prefersReducedMotion ? target : 0));
+
+  useEffect(() => {
+    if (target <= 0 || prefersReducedMotion) return;
+    let frame = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / durationMs);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setValue(Math.round(target * eased));
+      if (t < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [target, durationMs, prefersReducedMotion]);
+
+  return value;
+}
 
 export function ProfileView({ onBack, onNavigateToCatalog }: ProfileViewProps) {
   const {
@@ -25,6 +49,7 @@ export function ProfileView({ onBack, onNavigateToCatalog }: ProfileViewProps) {
   const totalXp = calculateTotalXp(focusGraphs);
   const levelInfo = calculateLevel(totalXp);
   const streakInfo = calculateStreak(activeDates, totalXp);
+  const animatedTotalXp = useAnimatedNumber(totalXp);
 
   const handleSaveName = (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,7 +154,7 @@ export function ProfileView({ onBack, onNavigateToCatalog }: ProfileViewProps) {
           <div className="profile-total-xp">
             <span className="profile-total-xp-label">Всего за всё время</span>
             <span className="profile-total-xp-value tabular">
-              {levelInfo.totalXp.toLocaleString()} XP
+              {animatedTotalXp.toLocaleString()} XP
             </span>
           </div>
         </div>
@@ -220,7 +245,7 @@ export function ProfileView({ onBack, onNavigateToCatalog }: ProfileViewProps) {
       <div className="profile-stats-grid">
         <div className="profile-stat-box">
           <span className="profile-stat-icon">⚡</span>
-          <span className="profile-stat-value tabular">{totalXp.toLocaleString()}</span>
+          <span className="profile-stat-value tabular">{animatedTotalXp.toLocaleString()}</span>
           <span className="profile-stat-label">Всего XP за всё время</span>
         </div>
 

@@ -1,0 +1,672 @@
+/* ============================================================
+   MATERIAL DESIGN 3 — MOTION LAYER
+   ------------------------------------------------------------
+   Единый слой анимаций поверх существующих тем (opus/diamond).
+   Импортируется ПОСЛЕДНИМ в app/layout.tsx и только добавляет
+   движение, не меняя раскладку и цвета компонентов.
+
+   Принципы (Material Design 3 Motion + ai-context/material_design_3_dark_theme_guide.md):
+   - Движение смысловое и спокойное: продукт для людей с СДВГ,
+     фон и декорации не должны отвлекать от текущего шага.
+   - Кривые M3: emphasized / emphasized-decelerate (вход),
+     emphasized-accelerate (выход), standard — для мелких состояний.
+   - Длительности из шкалы M3: short 50–200мс, medium 250–400мс,
+     long 450–600мс. Дольше — только награды (орб, XP) и фон.
+   - Только transform / translate / scale / opacity (GPU), без
+     анимации layout-свойств. `translate` и `scale` — отдельные
+     CSS-свойства: они компонуются с `transform` и не ломают
+     инлайн-позиционирование (станции метро, карточки ReactFlow).
+   - prefers-reduced-motion: всё движение отключается в конце файла.
+   ============================================================ */
+
+/* ---------- 0. Motion tokens (M3 easing & duration scale) ---------- */
+:root {
+  --m3-ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --m3-ease-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --m3-ease-emphasized-accelerate: cubic-bezier(0.3, 0, 0.8, 0.15);
+  --m3-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --m3-ease-standard-decelerate: cubic-bezier(0, 0, 0, 1);
+
+  --m3-dur-short-1: 50ms;
+  --m3-dur-short-2: 100ms;
+  --m3-dur-short-3: 150ms;
+  --m3-dur-short-4: 200ms;
+  --m3-dur-medium-1: 250ms;
+  --m3-dur-medium-2: 300ms;
+  --m3-dur-medium-3: 350ms;
+  --m3-dur-medium-4: 400ms;
+  --m3-dur-long-1: 450ms;
+  --m3-dur-long-2: 500ms;
+  --m3-dur-long-4: 600ms;
+
+  /* State-layer прозрачности по M3: hover 8%, focus 10%, pressed 10–12% */
+  --m3-state-hover: 0.08;
+  --m3-state-pressed: 0.12;
+}
+
+/* Плавный скролл и аккуратное выделение в фирменном лавандовом */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent-primary) 38%, transparent);
+}
+
+/* Тонкий скроллбар в тональности поверхностей, без кислотных акцентов */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-medium) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--accent-primary) 45%, var(--border-medium));
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ---------- 1. Ambient-фон «северное сияние» (очень тихий) ---------- */
+/*
+  Ответ на вопрос «нужна ли анимация на фоне»: да, но только такая.
+  Три сильно размытых лавандовых пятна на 6–14% цвета акцента,
+  дрейф 44–64 секунды — движение на грани восприятия. Глубина
+  графитовых поверхностей без «звёздного неба», частиц и канвасов,
+  которые в M3 и в продукте для СДВГ были бы шумом.
+  Слой фиксированный, pointer-events: none, контент (.opus-shell)
+  поднят выше и сделан прозрачным, чтобы сияние жило в негативном
+  пространстве вокруг карточек, а не под текстом.
+*/
+body {
+  background: var(--bg-page);
+}
+
+.m3-ambient {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.m3-ambient-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.55;
+  will-change: transform;
+}
+
+.m3-ambient-blob-a {
+  width: 58vmax;
+  height: 58vmax;
+  top: -22vmax;
+  right: -14vmax;
+  background: radial-gradient(
+    circle at center,
+    color-mix(in srgb, var(--accent-primary) 15%, transparent) 0%,
+    transparent 68%
+  );
+  animation: m3-ambient-drift-a 52s ease-in-out infinite alternate;
+}
+
+.m3-ambient-blob-b {
+  width: 44vmax;
+  height: 44vmax;
+  bottom: -20vmax;
+  left: -12vmax;
+  background: radial-gradient(
+    circle at center,
+    color-mix(in srgb, var(--accent-primary) 10%, transparent) 0%,
+    transparent 68%
+  );
+  animation: m3-ambient-drift-b 64s ease-in-out infinite alternate;
+}
+
+.m3-ambient-blob-c {
+  width: 30vmax;
+  height: 30vmax;
+  top: 38%;
+  left: 44%;
+  background: radial-gradient(
+    circle at center,
+    color-mix(in srgb, var(--accent-primary-hover, var(--accent-primary)) 7%, transparent) 0%,
+    transparent 70%
+  );
+  animation: m3-ambient-drift-a 72s ease-in-out -30s infinite alternate-reverse;
+}
+
+[data-theme="light"] .m3-ambient-blob {
+  opacity: 0.35;
+}
+
+@keyframes m3-ambient-drift-a {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(-6vmax, 4vmax, 0) scale(1.12);
+  }
+}
+
+@keyframes m3-ambient-drift-b {
+  from {
+    transform: translate3d(0, 0, 0) scale(1.08);
+  }
+  to {
+    transform: translate3d(5vmax, -4vmax, 0) scale(0.96);
+  }
+}
+
+/* Контент поверх ambient-слоя; фон шелла прозрачный, иначе сияние не видно */
+.opus-shell {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+}
+
+/* ---------- 2. Переходы экранов (shared-axis / fade-through, упрощённо) ---------- */
+/*
+  Экраны в приложении монтируются при смене view/selected, поэтому
+  входная анимация на корневых контейнерах даёт честный переход
+  Каталог -> Детали -> Фокус дня -> Профиль без JS.
+*/
+@keyframes m3-screen-in {
+  from {
+    opacity: 0;
+    translate: 0 12px;
+    scale: 0.995;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+}
+
+.opus-content:not(.profile-page),
+.focus-page {
+  animation: m3-screen-in var(--m3-dur-medium-3) var(--m3-ease-emphasized-decelerate) backwards;
+}
+
+/* ---------- 3. Каскадное появление списков (stagger) ---------- */
+@keyframes m3-item-in {
+  from {
+    opacity: 0;
+    translate: 0 16px;
+    scale: 0.98;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+}
+
+@keyframes m3-pop-in {
+  0% {
+    opacity: 0;
+    scale: 0.4;
+  }
+  70% {
+    opacity: 1;
+    scale: 1.12;
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+/* Карточки каталога/полки: --m3-stagger приходит из page.tsx (cap 11) */
+.opus-roadmap-card {
+  animation: m3-item-in var(--m3-dur-long-1) var(--m3-ease-emphasized-decelerate) backwards;
+  animation-delay: calc(var(--m3-stagger, 0) * 45ms);
+}
+
+/* Метро дней: карточки и точки появляются вдоль линии (cap 10 из компонента).
+   Анимируем translate/scale-свойства — инлайн-transform позиционирования цел. */
+.metro-station .metro-card {
+  animation: m3-item-in var(--m3-dur-medium-4) var(--m3-ease-emphasized-decelerate) backwards;
+  animation-delay: calc(120ms + var(--m3-stagger, 0) * 70ms);
+}
+
+.metro-station .metro-dot {
+  animation: m3-pop-in var(--m3-dur-medium-2) var(--m3-ease-emphasized-decelerate) backwards;
+  animation-delay: calc(80ms + var(--m3-stagger, 0) * 70ms);
+}
+
+.metro-dot .check-icon {
+  display: inline-block;
+  animation: m3-pop-in var(--m3-dur-medium-1) var(--m3-ease-emphasized-decelerate) 250ms backwards;
+}
+
+/* Профиль: секции каскадом сверху вниз */
+.profile-page > * {
+  animation: m3-item-in var(--m3-dur-medium-4) var(--m3-ease-emphasized-decelerate) backwards;
+}
+
+.profile-page > *:nth-child(1) { animation-delay: 0ms; }
+.profile-page > *:nth-child(2) { animation-delay: 60ms; }
+.profile-page > *:nth-child(3) { animation-delay: 120ms; }
+.profile-page > *:nth-child(4) { animation-delay: 180ms; }
+.profile-page > *:nth-child(5) { animation-delay: 240ms; }
+.profile-page > *:nth-child(6) { animation-delay: 300ms; }
+
+/* Плашки статистики внутри своей секции — второй уровень каскада */
+.profile-stats-grid .profile-stat-box {
+  animation: m3-item-in var(--m3-dur-medium-3) var(--m3-ease-emphasized-decelerate) backwards;
+}
+
+.profile-stats-grid .profile-stat-box:nth-child(1) { animation-delay: 280ms; }
+.profile-stats-grid .profile-stat-box:nth-child(2) { animation-delay: 340ms; }
+.profile-stats-grid .profile-stat-box:nth-child(3) { animation-delay: 400ms; }
+.profile-stats-grid .profile-stat-box:nth-child(4) { animation-delay: 460ms; }
+
+/* Дни недели стрика зажигаются по очереди */
+.streak-week-days .streak-day-chip.completed .streak-day-indicator {
+  display: inline-block;
+  animation: m3-pop-in var(--m3-dur-medium-1) var(--m3-ease-emphasized-decelerate) backwards;
+}
+
+.streak-week-days > *:nth-child(1) .streak-day-indicator { animation-delay: 350ms; }
+.streak-week-days > *:nth-child(2) .streak-day-indicator { animation-delay: 420ms; }
+.streak-week-days > *:nth-child(3) .streak-day-indicator { animation-delay: 490ms; }
+.streak-week-days > *:nth-child(4) .streak-day-indicator { animation-delay: 560ms; }
+.streak-week-days > *:nth-child(5) .streak-day-indicator { animation-delay: 630ms; }
+.streak-week-days > *:nth-child(6) .streak-day-indicator { animation-delay: 700ms; }
+.streak-week-days > *:nth-child(7) .streak-day-indicator { animation-delay: 770ms; }
+
+/* ---------- 4. Интерактив: state layers, hover, pressed ---------- */
+/* Карточки роудмапов: тональное возвышение вместо тяжёлых теней (M3 dark) */
+.opus-roadmap-card {
+  transition:
+    background-color var(--m3-dur-short-4) var(--m3-ease-standard),
+    border-color var(--m3-dur-short-4) var(--m3-ease-standard),
+    box-shadow var(--m3-dur-medium-1) var(--m3-ease-standard),
+    transform var(--m3-dur-short-4) var(--m3-ease-emphasized),
+    scale var(--m3-dur-short-2) var(--m3-ease-standard);
+}
+
+.opus-card-visual > div {
+  transition: transform var(--m3-dur-long-2) var(--m3-ease-emphasized-decelerate);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .opus-roadmap-card:hover {
+    background: var(--bg-surface-hover);
+    border-color: color-mix(in srgb, var(--accent-primary) 42%, var(--border-medium));
+    box-shadow:
+      0 10px 28px rgba(0, 0, 0, 0.32),
+      0 4px 18px rgba(208, 188, 255, 0.1);
+  }
+
+  .opus-roadmap-card:hover .opus-card-visual > div {
+    transform: scale(1.045);
+  }
+
+  .metro-card:hover {
+    border-color: color-mix(in srgb, var(--accent-primary) 45%, var(--border-strong, #3e4148));
+  }
+
+  .profile-stat-box:hover {
+    translate: 0 -3px;
+    border-color: color-mix(in srgb, var(--accent-primary) 35%, var(--border-medium));
+  }
+}
+
+.opus-roadmap-card:active {
+  scale: 0.985;
+}
+
+.profile-stat-box {
+  transition:
+    translate var(--m3-dur-short-4) var(--m3-ease-emphasized),
+    border-color var(--m3-dur-short-4) var(--m3-ease-standard),
+    background-color var(--m3-dur-short-4) var(--m3-ease-standard);
+}
+
+/* Навигация в сайдбаре: иконка оживает, активная пилюля «щёлкает» при выборе */
+.opus-nav-item {
+  transition:
+    background-color var(--m3-dur-short-4) var(--m3-ease-standard),
+    color var(--m3-dur-short-3) var(--m3-ease-standard),
+    scale var(--m3-dur-short-2) var(--m3-ease-standard);
+}
+
+.opus-nav-item:active {
+  scale: 0.98;
+}
+
+.opus-nav-item-icon {
+  transition: transform var(--m3-dur-short-4) var(--m3-ease-emphasized);
+}
+
+.opus-nav-item:hover .opus-nav-item-icon {
+  transform: scale(1.14);
+}
+
+@keyframes m3-pill-pop {
+  from {
+    scale: 0.96;
+  }
+  to {
+    scale: 1;
+  }
+}
+
+.opus-nav-item.active,
+.opus-sort-tab.active {
+  animation: m3-pill-pop var(--m3-dur-short-4) var(--m3-ease-emphasized-decelerate);
+}
+
+.opus-sort-tab {
+  transition:
+    background-color var(--m3-dur-short-4) var(--m3-ease-standard),
+    color var(--m3-dur-short-3) var(--m3-ease-standard),
+    box-shadow var(--m3-dur-short-4) var(--m3-ease-standard),
+    scale var(--m3-dur-short-2) var(--m3-ease-standard);
+}
+
+.opus-sort-tab:active {
+  scale: 0.95;
+}
+
+/* Иконочные кнопки настроек (тема/звук) и бренд */
+.opus-settings-btn {
+  transition:
+    background-color var(--m3-dur-short-4) var(--m3-ease-standard),
+    border-color var(--m3-dur-short-4) var(--m3-ease-standard),
+    color var(--m3-dur-short-3) var(--m3-ease-standard),
+    transform var(--m3-dur-short-3) var(--m3-ease-emphasized);
+}
+
+.opus-settings-btn:active {
+  transform: scale(0.9) rotate(10deg);
+}
+
+.opus-brand-mark {
+  transition: transform var(--m3-dur-medium-1) var(--m3-ease-emphasized);
+}
+
+.opus-brand:hover .opus-brand-mark {
+  transform: rotate(-6deg) scale(1.06);
+}
+
+.opus-profile-btn {
+  transition:
+    background-color var(--m3-dur-short-4) var(--m3-ease-standard),
+    border-color var(--m3-dur-short-4) var(--m3-ease-standard),
+    scale var(--m3-dur-short-2) var(--m3-ease-standard);
+}
+
+.opus-profile-btn:active {
+  scale: 0.98;
+}
+
+/* Кнопки «назад»: стрелка уезжает влево вместе с кнопкой */
+.opus-back-btn,
+.back-button {
+  transition:
+    color var(--m3-dur-short-3) var(--m3-ease-standard),
+    translate var(--m3-dur-short-4) var(--m3-ease-emphasized);
+}
+
+.opus-back-btn:hover,
+.back-button:hover {
+  translate: -3px 0;
+}
+
+/* Точки метро: нажатие пружинит (scale-свойство не трогает transform-центровку) */
+.metro-dot {
+  transition:
+    background-color var(--m3-dur-short-4) var(--m3-ease-standard),
+    border-color var(--m3-dur-short-4) var(--m3-ease-standard),
+    box-shadow var(--m3-dur-short-4) var(--m3-ease-standard),
+    scale var(--m3-dur-short-2) var(--m3-ease-standard);
+}
+
+.metro-dot:active {
+  scale: 0.88;
+}
+
+.metro-card:active {
+  scale: 0.99;
+}
+
+/* Кольцо прогресса дня: та же кривая M3 вместо ease */
+.progress-ring-circle {
+  transition: stroke-dashoffset 700ms var(--m3-ease-emphasized);
+}
+
+/* ---------- 5. Меню и панели (M3 menu / container reveal) ---------- */
+@keyframes m3-menu-in {
+  from {
+    opacity: 0;
+    scale: 0.92;
+    translate: 0 -4px;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+    translate: 0 0;
+  }
+}
+
+.task-menu {
+  transform-origin: top right;
+  animation: m3-menu-in var(--m3-dur-short-4) var(--m3-ease-emphasized-decelerate) backwards;
+}
+
+@keyframes m3-panel-in {
+  from {
+    opacity: 0;
+    translate: 0 -8px;
+    scale: 0.99;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+}
+
+.m3-create-panel {
+  transform-origin: top center;
+  animation: m3-panel-in var(--m3-dur-medium-2) var(--m3-ease-emphasized-decelerate) backwards;
+}
+
+/* Пустое состояние: иконка мягко парит, не дёргается */
+@keyframes m3-float-soft {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: 0 -6px;
+  }
+}
+
+.opus-empty-icon {
+  display: inline-block;
+  animation: m3-float-soft 2.8s ease-in-out infinite alternate;
+}
+
+.opus-empty-state {
+  animation: m3-screen-in var(--m3-dur-medium-3) var(--m3-ease-emphasized-decelerate) backwards;
+}
+
+/* ---------- 6. Экран фокуса дня ---------- */
+/* Текущая задача «дышит» кольцом акцента — взгляд сам находит следующий шаг */
+@keyframes m3-current-glow {
+  from {
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--accent-primary) 16%, transparent),
+      0 10px 30px rgba(0, 0, 0, 0.26);
+  }
+  to {
+    box-shadow:
+      0 0 0 5px color-mix(in srgb, var(--accent-primary) 28%, transparent),
+      0 12px 34px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.task-node.is-current {
+  animation:
+    task-arrive 450ms var(--m3-ease-emphasized-decelerate) both,
+    m3-current-glow 2.6s ease-in-out 500ms infinite alternate;
+}
+
+.task-check:active:not(:disabled) {
+  transform: scale(0.86);
+}
+
+.task-menu-button:active {
+  scale: 0.9;
+}
+
+.task-menu-button {
+  transition:
+    background-color var(--m3-dur-short-3) var(--m3-ease-standard),
+    border-color var(--m3-dur-short-3) var(--m3-ease-standard),
+    color var(--m3-dur-short-3) var(--m3-ease-standard),
+    scale var(--m3-dur-short-2) var(--m3-ease-standard);
+}
+
+.graph-empty,
+.split-error {
+  animation: m3-panel-in var(--m3-dur-medium-1) var(--m3-ease-emphasized-decelerate) backwards;
+}
+
+/* ---------- 7. Профиль: рост шкалы, точка-стоп M3, бейдж аватара ---------- */
+@keyframes m3-progress-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.profile-progress-bar-fill {
+  transform-origin: left center;
+  animation: m3-progress-grow 1000ms var(--m3-ease-emphasized-decelerate) 200ms backwards;
+}
+
+/* Точка-стоп на конце активной шкалы — фирменная деталь новых M3-индикаторов */
+.profile-progress-bar-fill::after {
+  content: "";
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  translate: 0 -50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--bg-page);
+  opacity: 0.85;
+  z-index: 1;
+}
+
+@keyframes m3-badge-float {
+  from {
+    translate: 0 0;
+    rotate: 0deg;
+  }
+  to {
+    translate: 0 -2px;
+    rotate: 10deg;
+  }
+}
+
+.profile-avatar-badge {
+  animation: m3-badge-float 3.2s ease-in-out infinite alternate;
+}
+
+.profile-avatar-large {
+  animation: m3-pop-in var(--m3-dur-medium-4) var(--m3-ease-emphasized-decelerate) 80ms backwards;
+}
+
+/* ---------- 8. Ripple (фирменный отклик Material) ---------- */
+/* Хосты получают ink-элемент из components/m3-ripple.tsx при pointerdown */
+.btn,
+.opus-nav-item,
+.opus-sort-tab,
+.opus-settings-btn,
+.opus-profile-btn,
+.opus-brand,
+.task-check,
+.task-menu-button {
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.m3-ripple-ink {
+  position: absolute;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0);
+  animation: m3-ripple 550ms var(--m3-ease-standard-decelerate) forwards;
+  z-index: 0;
+}
+
+@keyframes m3-ripple {
+  0% {
+    opacity: var(--m3-state-pressed);
+    transform: translate(-50%, -50%) scale(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* ---------- 9. Смена темы без резкого скачка ---------- */
+body,
+.opus-sidebar,
+.opus-main {
+  transition:
+    background-color var(--m3-dur-medium-3) var(--m3-ease-standard),
+    color var(--m3-dur-medium-3) var(--m3-ease-standard),
+    border-color var(--m3-dur-medium-3) var(--m3-ease-standard);
+}
+
+/* ---------- 10. Reduced motion: полный стоп, включая фон и бесконечные циклы ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .m3-ambient-blob {
+    animation: none !important;
+  }
+
+  .m3-ripple-ink {
+    display: none !important;
+  }
+}

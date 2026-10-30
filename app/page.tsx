@@ -440,7 +440,7 @@ export default function OpusHomePage() {
 
           {/* Create roadmap form */}
           {showCreate && (
-            <div style={{
+            <div className="m3-create-panel" style={{
               marginBottom: "var(--space-8)",
               padding: "var(--space-6)",
               background: "var(--bg-surface)",
@@ -534,7 +534,7 @@ export default function OpusHomePage() {
             </div>
           ) : (
             <div className="opus-cards-grid">
-              {visible.map((roadmap) => {
+              {visible.map((roadmap, index) => {
                 const completedDays = calculateCompletedDays(roadmap.id, roadmap.days.length, focusGraphs);
                 const progressPercent = roadmap.days.length > 0 
                   ? Math.round((completedDays.length / roadmap.days.length) * 100) 
@@ -544,6 +544,7 @@ export default function OpusHomePage() {
                   <button
                     key={roadmap.id}
                     className="opus-roadmap-card"
+                    style={{ "--m3-stagger": Math.min(index, 11) } as React.CSSProperties}
                     onClick={() => setSelected(roadmap)}
                   >
                     {/* Progress bar for shelf cards */}

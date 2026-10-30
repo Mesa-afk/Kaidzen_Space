@@ -652,7 +652,7 @@ export function DayFocus({ roadmapTitle, roadmap, dayNumber, storageKey, onBack 
           xp={showParticles.xp}
           sourceX={showParticles.x}
           sourceY={showParticles.y}
-          targetSelector=".avatar"
+          targetSelector=".opus-profile-avatar"
         />
       )}
     </section>
