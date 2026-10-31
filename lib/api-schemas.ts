@@ -129,3 +129,44 @@ export type RoadmapTask = z.infer<typeof roadmapTaskSchema>;
 export type RoadmapResponse = z.infer<typeof roadmapResponseSchema>;
 export type RoadmapSkeletonModel = z.infer<typeof roadmapSkeletonModelSchema>;
 export type RoadmapSkeletonResponse = z.infer<typeof roadmapSkeletonResponseSchema>;
+
+/* ---------------- Авторизация (серверные аккаунты) ---------------- */
+
+const AUTH_EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+export const authRegisterRequestSchema = z.object({
+  name: z.string().trim().min(2).max(30),
+  email: z.string().trim().min(3).max(254).regex(AUTH_EMAIL_PATTERN, "Invalid email"),
+  password: z.string().min(6).max(72),
+}).strict();
+
+export const authLoginRequestSchema = z.object({
+  email: z.string().trim().min(3).max(254).regex(AUTH_EMAIL_PATTERN, "Invalid email"),
+  password: z.string().min(1).max(72),
+}).strict();
+
+export const authProfileUpdateRequestSchema = z.object({
+  name: z.string().trim().min(2).max(30).optional(),
+  avatarDataUrl: z
+    .string()
+    .max(90_000)
+    .regex(/^data:image\/(jpeg|png|webp);base64,/, "Avatar must be a jpeg/png/webp data URL")
+    .nullable()
+    .optional(),
+}).strict().refine(
+  (patch) => patch.name !== undefined || patch.avatarDataUrl !== undefined,
+  { message: "At least one field is required" },
+);
+
+export const authUserResponseSchema = z.object({
+  user: z.object({
+    id: z.string().min(1),
+    name: z.string(),
+    email: z.string(),
+    avatarDataUrl: z.string().nullable(),
+    createdAt: z.string(),
+  }),
+});
+
+export type AuthUserResponse = z.infer<typeof authUserResponseSchema>;
+export type AuthPublicUser = AuthUserResponse["user"];
