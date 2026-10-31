@@ -61,7 +61,9 @@ describe("streak calculations", () => {
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = formatDateKey(yesterday);
 
-    const streak = calculateStreak([yesterdayStr, today], 200);
+    // Явно передаём текущую дату: без window calculateStreak использует
+    // SSR-fallback 2026-10-30, и после этой даты тест расходится с календарём.
+    const streak = calculateStreak([yesterdayStr, today], 200, new Date());
     expect(streak.currentStreak).toBe(2);
     expect(streak.isLitToday).toBe(true);
     expect(streak.needsPracticeToday).toBe(false);
