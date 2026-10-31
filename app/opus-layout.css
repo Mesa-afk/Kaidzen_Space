@@ -142,18 +142,6 @@
   margin-top: var(--space-4);
 }
 
-/* Гостевые ссылки входа/регистрации под кнопкой профиля */
-.opus-auth-actions {
-  display: flex;
-  gap: var(--space-2);
-  margin-top: var(--space-3);
-}
-
-.opus-auth-actions .btn {
-  flex: 1;
-  text-decoration: none;
-}
-
 .opus-profile-btn {
   display: flex;
   align-items: center;

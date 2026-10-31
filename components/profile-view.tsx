@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useKaizenStore } from "@/lib/store";
+import { logoutApi, updateProfileApi } from "@/lib/api-client";
+import { validateName } from "@/lib/auth";
 import { calculateLevel, calculateStreak } from "@/lib/progression";
 import { calculateTotalXp } from "@/lib/total-xp";
 
@@ -45,20 +47,21 @@ function PencilIcon() {
 }
 
 export function ProfileView({ onBack, onNavigateToCatalog }: ProfileViewProps) {
+  const router = useRouter();
   const {
     userName,
-    setUserName,
     activeDates,
     focusGraphs,
     myRoadmaps,
     avatarDataUrl,
-    setAvatar,
     currentUserEmail,
-    logoutAccount,
+    setAuthUser,
   } = useKaizenStore();
 
   const [isEditingName, setIsEditingName] = useState(false);
   const [nameInput, setNameInput] = useState(userName);
+  const [nameError, setNameError] = useState("");
+  const [savingName, setSavingName] = useState(false);
   const [avatarError, setAvatarError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -93,11 +96,32 @@ export function ProfileView({ onBack, onNavigateToCatalog }: ProfileViewProps) {
       const height = bitmap.height * scale;
       ctx.drawImage(bitmap, (size - width) / 2, (size - height) / 2, width, height);
       bitmap.close();
-      setAvatar(canvas.toDataURL("image/jpeg", 0.85));
+      const user = await updateProfileApi({ avatarDataUrl: canvas.toDataURL("image/jpeg", 0.85) });
+      setAuthUser(user);
       setAvatarError("");
     } catch {
       setAvatarError("Не удалось загрузить картинку. Попробуйте другую.");
     }
+  };
+
+  const handleRemoveAvatar = async () => {
+    try {
+      const user = await updateProfileApi({ avatarDataUrl: null });
+      setAuthUser(user);
+      setAvatarError("");
+    } catch {
+      setAvatarError("Не удалось убрать фото. Попробуйте ещё раз.");
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logoutApi();
+    } catch {
+      // Сервер недоступен — всё равно завершаем локальную сессию в UI.
+    }
+    setAuthUser(null);
+    router.replace("/login");
   };
 
   const totalXp = calculateTotalXp(focusGraphs);
@@ -105,11 +129,23 @@ export function ProfileView({ onBack, onNavigateToCatalog }: ProfileViewProps) {
   const streakInfo = calculateStreak(activeDates, totalXp);
   const animatedTotalXp = useAnimatedNumber(totalXp);
 
-  const handleSaveName = (e: React.FormEvent) => {
+  const handleSaveName = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (nameInput.trim()) {
-      setUserName(nameInput.trim());
+    const validationError = validateName(nameInput);
+    if (validationError) {
+      setNameError(validationError);
+      return;
+    }
+    setSavingName(true);
+    setNameError("");
+    try {
+      const user = await updateProfileApi({ name: nameInput.trim() });
+      setAuthUser(user);
       setIsEditingName(false);
+    } catch {
+      setNameError("Не удалось сохранить имя. Попробуйте ещё раз.");
+    } finally {
+      setSavingName(false);
     }
   };
 
@@ -166,10 +202,7 @@ export function ProfileView({ onBack, onNavigateToCatalog }: ProfileViewProps) {
             <button
               type="button"
               className="btn btn-ghost btn-sm"
-              onClick={() => {
-                setAvatar(null);
-                setAvatarError("");
-              }}
+              onClick={handleRemoveAvatar}
             >
               Убрать фото
             </button>
@@ -370,20 +403,9 @@ export function ProfileView({ onBack, onNavigateToCatalog }: ProfileViewProps) {
 
       {/* Call to action + аккаунт */}
       <div className="profile-footer-actions">
-        {currentUserEmail ? (
-          <button type="button" className="btn btn-secondary" onClick={logoutAccount}>
-            Выйти из аккаунта
-          </button>
-        ) : (
-          <>
-            <Link href="/login" className="btn btn-secondary">
-              Войти
-            </Link>
-            <Link href="/register" className="btn btn-ghost">
-              Создать аккаунт
-            </Link>
-          </>
-        )}
+        <button type="button" className="btn btn-secondary" onClick={handleLogout}>
+          Выйти из аккаунта
+        </button>
         <button className="btn btn-primary" onClick={onNavigateToCatalog}>
           Продолжить обучение →
         </button>

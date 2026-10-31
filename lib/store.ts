@@ -5,7 +5,7 @@ import type { TaskNode } from "./graph";
 import type { DailySessionResponse, StoredDaySession } from "./day-session-contract";
 import { canReplaceUnstartedDayGraph, migrateDaySessionState, storeGeneratedDaySession } from "./day-session-store";
 import { formatDateKey } from "./progression";
-import type { AccountRecord, AccountsMap } from "./auth";
+import type { AuthPublicUser } from "./api-schemas";
 
 export type ThemeMode = "light" | "dark";
 
@@ -53,9 +53,7 @@ type KaizenState = {
   likedRoadmapIds: string[]; // Track liked roadmap IDs
   userName: string;
   activeDates: string[];
-  /** Локальные аккаунты по email (lib/auth.ts). */
-  accounts: AccountsMap;
-  /** Email вошедшего пользователя; null — гостевой режим. */
+  /** Email вошедшего пользователя (зеркало серверной сессии); null — не вошёл. */
   currentUserEmail: string | null;
   /** Аватар профиля: data URL уменьшенной картинки или null (буква имени). */
   avatarDataUrl: string | null;
@@ -73,12 +71,9 @@ type KaizenState = {
   setThemeMode: (mode: ThemeMode) => void;
   toggleSound: () => void;
   toggleLike: (roadmapId: string) => void;
-  setUserName: (name: string) => void;
   recordActivity: (dateStr?: string) => void;
-  registerAccount: (account: AccountRecord) => void;
-  loginAccount: (account: AccountRecord) => void;
-  logoutAccount: () => void;
-  setAvatar: (dataUrl: string | null) => void;
+  /** Синхронизирует зеркало профиля с серверным пользователем (или сбрасывает при выходе). */
+  setAuthUser: (user: AuthPublicUser | null) => void;
 };
 
 export const useKaizenStore = create<KaizenState>()(persist((set) => ({
@@ -91,30 +86,19 @@ export const useKaizenStore = create<KaizenState>()(persist((set) => ({
   likedRoadmapIds: [],
   userName: "Пользователь",
   activeDates: [],
-  accounts: {},
   currentUserEmail: null,
   avatarDataUrl: null,
-  setUserName: (name) => set((state) => {
-    const trimmed = name.trim() || "Пользователь";
-    const account = state.currentUserEmail ? state.accounts[state.currentUserEmail] : undefined;
-    if (!account) return { userName: trimmed };
-    // Ник залогиненного пользователя живёт в записи аккаунта.
-    return {
-      userName: trimmed,
-      accounts: { ...state.accounts, [account.email]: { ...account, name: trimmed } },
-    };
-  }),
-  registerAccount: (account) => set((state) => ({
-    accounts: { ...state.accounts, [account.email]: account },
-    currentUserEmail: account.email,
-    userName: account.name,
-  })),
-  loginAccount: (account) => set({
-    currentUserEmail: account.email,
-    userName: account.name,
-  }),
-  logoutAccount: () => set({ currentUserEmail: null }),
-  setAvatar: (dataUrl) => set({ avatarDataUrl: dataUrl }),
+  setAuthUser: (user) => set(user
+    ? {
+      userName: user.name,
+      currentUserEmail: user.email,
+      avatarDataUrl: user.avatarDataUrl,
+    }
+    : {
+      userName: "Пользователь",
+      currentUserEmail: null,
+      avatarDataUrl: null,
+    }),
   recordActivity: (dateStr) => set((state) => {
     const today = dateStr || formatDateKey(new Date());
     if (state.activeDates.includes(today)) return state;
@@ -193,11 +177,11 @@ export const useKaizenStore = create<KaizenState>()(persist((set) => ({
   })),
 }), {
   name: "kaizen-roadmaps",
-  version: 7,
+  version: 8,
   storage: createJSONStorage(getSafeStorage),
   migrate: (persistedState) => {
     const state = persistedState as KaizenState;
-    return {
+    const migrated: KaizenState = {
       ...state,
       ...migrateDaySessionState(state),
       myRoadmaps: dedupeRoadmaps(state.myRoadmaps ?? []),
@@ -206,9 +190,12 @@ export const useKaizenStore = create<KaizenState>()(persist((set) => ({
       likedRoadmapIds: state.likedRoadmapIds ?? [],
       userName: state.userName ?? "Пользователь",
       activeDates: state.activeDates ?? [],
-      accounts: state.accounts ?? {},
       currentUserEmail: state.currentUserEmail ?? null,
       avatarDataUrl: state.avatarDataUrl ?? null,
     };
+    // v7 хранил локальные аккаунты с клиентскими SHA-256 хэшами: сервер
+    // (scrypt) их не примет, поле удаляем — вход теперь только серверный.
+    delete (migrated as Record<string, unknown>).accounts;
+    return migrated;
   },
 }));

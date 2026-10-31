@@ -1,17 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useKaizenStore } from "@/lib/store";
-import { useHydrated } from "@/hooks/use-hydrated";
 import {
-  hashPassword,
-  tryLogin,
-  tryRegister,
-  validateLoginInput,
-  validateRegistration,
-} from "@/lib/auth";
+  ApiClientError,
+  fetchMeApi,
+  loginApi,
+  logoutApi,
+  registerApi,
+  updateProfileApi,
+} from "@/lib/api-client";
+import { validateLoginInput, validateRegistration } from "@/lib/auth";
+import type { AuthPublicUser } from "@/lib/api-schemas";
 
 type AuthFormProps = {
   mode: "login" | "register";
@@ -27,13 +29,31 @@ function EyeIcon({ hidden }: { hidden: boolean }) {
   );
 }
 
+/** Серверные коды ошибок — в понятные русские сообщения формы. */
+function authErrorMessage(error: unknown): string {
+  if (error instanceof ApiClientError) {
+    switch (error.code) {
+      case "AUTH_INVALID_CREDENTIALS":
+        return "Неверный email или пароль.";
+      case "AUTH_EMAIL_TAKEN":
+        return "Аккаунт с таким email уже существует — войдите в него.";
+      case "AUTH_TOO_MANY_ATTEMPTS":
+        return "Слишком много попыток. Подождите немного и попробуйте снова.";
+      case "VALIDATION_ERROR":
+        return "Проверьте введённые данные.";
+      default:
+        break;
+    }
+  }
+  return "Что-то пошло не так. Попробуйте ещё раз.";
+}
+
 export function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
-  const hydrated = useHydrated();
-  const currentUserEmail = useKaizenStore((state) => state.currentUserEmail);
-  const userName = useKaizenStore((state) => state.userName);
-  const logoutAccount = useKaizenStore((state) => state.logoutAccount);
+  const setAuthUser = useKaizenStore((state) => state.setAuthUser);
 
+  // undefined — проверяем серверную сессию; null — не вошёл.
+  const [existingUser, setExistingUser] = useState<AuthPublicUser | null | undefined>(undefined);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,6 +63,20 @@ export function AuthForm({ mode }: AuthFormProps) {
   const [submitting, setSubmitting] = useState(false);
 
   const isLogin = mode === "login";
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchMeApi()
+      .then((user) => {
+        if (!cancelled) setExistingUser(user);
+      })
+      .catch(() => {
+        if (!cancelled) setExistingUser(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -59,31 +93,36 @@ export function AuthForm({ mode }: AuthFormProps) {
     setSubmitting(true);
     setError("");
     try {
-      const passwordHash = await hashPassword(password);
-      const state = useKaizenStore.getState();
+      const user = isLogin
+        ? await loginApi({ email, password })
+        : await registerApi({ name, email, password });
 
-      if (isLogin) {
-        const result = tryLogin(state.accounts, email, passwordHash);
-        if (!result.ok) {
-          setError(result.error);
-          return;
-        }
-        state.loginAccount(result.account);
-      } else {
-        const result = tryRegister(state.accounts, { name, email, passwordHash });
-        if (!result.ok) {
-          setError(result.error);
-          return;
-        }
-        state.registerAccount(result.account);
+      // Одноразовый перенос локального аватара времён клиентских аккаунтов:
+      // если на сервере аватара ещё нет, а в этом браузере он был — загрузим.
+      const localAvatar = useKaizenStore.getState().avatarDataUrl;
+      setAuthUser(user);
+      if (!user.avatarDataUrl && localAvatar) {
+        updateProfileApi({ avatarDataUrl: localAvatar })
+          .then((updated) => setAuthUser(updated))
+          .catch(() => undefined);
       }
 
       router.push("/");
-    } catch {
-      setError("Что-то пошло не так. Попробуйте ещё раз.");
+    } catch (submitError) {
+      setError(authErrorMessage(submitError));
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logoutApi();
+    } catch {
+      // Даже если сервер недоступен, локально выходим и показываем форму.
+    }
+    setAuthUser(null);
+    setExistingUser(null);
   };
 
   return (
@@ -94,19 +133,19 @@ export function AuthForm({ mode }: AuthFormProps) {
           <span>Kaizen Space</span>
         </Link>
 
-        {!hydrated ? (
+        {existingUser === undefined ? (
           <p className="auth-subtitle">Загрузка…</p>
-        ) : currentUserEmail ? (
+        ) : existingUser ? (
           <>
             <h1 className="auth-title">Вы уже вошли</h1>
             <p className="auth-subtitle">
-              {userName} · {currentUserEmail}
+              {existingUser.name} · {existingUser.email}
             </p>
             <div className="auth-actions">
               <Link href="/" className="btn btn-primary">
                 На главную
               </Link>
-              <button type="button" className="btn btn-secondary" onClick={logoutAccount}>
+              <button type="button" className="btn btn-secondary" onClick={handleLogout}>
                 Выйти из аккаунта
               </button>
             </div>
@@ -211,8 +250,8 @@ export function AuthForm({ mode }: AuthFormProps) {
             </p>
 
             <p className="auth-note">
-              Аккаунт хранится локально в этом браузере — как и все ваши
-              роудмапы и прогресс. Пароль сохраняется только в виде хэша.
+              Аккаунт хранится на сервере приложения, пароль — только в виде
+              scrypt-хэша. Сессия держится в защищённой httpOnly-куке.
             </p>
           </>
         )}

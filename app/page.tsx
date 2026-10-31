@@ -1,14 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { enhancedDemoRoadmaps } from "@/lib/mock-data";
 import { roadmapSourceId, type Roadmap } from "@/lib/roadmaps";
 import { useKaizenStore } from "@/lib/store";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { CardVisual } from "@/components/card-visual";
 import { mockGenerateRoadmap } from "@/lib/mock-generate";
-import { generateRoadmapSkeletonApi, isBackendEnabled } from "@/lib/api-client";
+import { fetchMeApi, generateRoadmapSkeletonApi, isBackendEnabled } from "@/lib/api-client";
 import { calculateTodayXp } from "@/lib/total-xp";
 import { DayFocus } from "@/components/day-focus";
 import { DayMetroLine } from "@/components/day-metro-line";
@@ -48,9 +48,32 @@ export default function OpusHomePage() {
     setFocusGraph,
     userName,
     activeDates,
-    currentUserEmail,
     avatarDataUrl,
+    setAuthUser,
   } = useKaizenStore();
+
+  // Вход на сайт — только с серверной сессией: проверяем /api/auth/me,
+  // без неё уводим на /login и приложение не рендерим.
+  const router = useRouter();
+  const [authChecked, setAuthChecked] = useState(false);
+  useEffect(() => {
+    if (!hydrated) return;
+    let cancelled = false;
+    fetchMeApi()
+      .then((user) => {
+        if (cancelled) return;
+        setAuthUser(user);
+        setAuthChecked(true);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setAuthUser(null);
+        router.replace("/login");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [hydrated, router, setAuthUser]);
   
   const totalXp = calculateTotalXp(focusGraphs);
   const levelInfo = calculateLevel(totalXp);
@@ -208,7 +231,7 @@ export default function OpusHomePage() {
     }
   };
 
-  if (!hydrated) {
+  if (!hydrated || !authChecked) {
     return (
       <div className="opus-shell">
         <div className="opus-sidebar" />
@@ -287,17 +310,6 @@ export default function OpusHomePage() {
             </div>
           </button>
           
-          {!currentUserEmail && (
-            <div className="opus-auth-actions">
-              <Link href="/login" className="btn btn-secondary btn-sm">
-                Войти
-              </Link>
-              <Link href="/register" className="btn btn-ghost btn-sm">
-                Регистрация
-              </Link>
-            </div>
-          )}
-
           <div className="opus-settings-row">
             <button
               className="opus-settings-btn"
