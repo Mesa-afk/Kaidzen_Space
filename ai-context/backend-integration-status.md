@@ -2,6 +2,11 @@
 
 Implemented:
 
+- Server-side authentication: SQLite user database (`lib/server/db.ts`),
+  scrypt password hashes, cookie sessions, and routes
+  `POST /api/auth/register|login|logout`, `GET /api/auth/me`,
+  `PATCH /api/auth/profile`. The UI is gated: unauthenticated visitors
+  are redirected to `/login`. See `auth-backend.md`.
 - `POST /api/roadmaps/generate`: validated request, server LLM gateway,
   temporary-ID normalization, graph and per-day XP checks.
 - `POST /api/roadmaps/skeleton`: Kaufman/Dreyfus/Maurer roadmap metadata for a
@@ -20,10 +25,13 @@ Implemented:
 
 Not production-ready without deployment work:
 
-- No authentication/authorization provider is configured.
-- The repository and rate limit/idempotency store are process-local demo
-  adapters; use a durable transactional database and distributed atomic store
-  for multiple instances.
+- The generation endpoints (`/api/roadmaps/*`, `/api/tasks/*`) do not
+  yet require an auth session; only the UI entry and auth operations are
+  session-gated. Wiring generation to the session is a follow-up.
+- The user database is a single SQLite file and the repository and rate
+  limit/idempotency store are process-local demo adapters; use a durable
+  transactional database and distributed atomic store for multiple
+  instances.
 - Repository/Shelf HTTP endpoints and server progress endpoint are contracts,
   not yet exposed routes; the current UI still uses its existing local demo
   repository for browsing/shelf interactions.
