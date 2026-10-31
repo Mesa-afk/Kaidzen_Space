@@ -1,6 +1,6 @@
 import { getDatabase } from "@/lib/server/db";
 import {
-  buildClearSessionCookie,
+  buildClearSessionCookies,
   deleteSession,
   readSessionToken,
 } from "@/lib/server/services/auth-service";
@@ -11,13 +11,16 @@ export async function POST(request: Request) {
   const correlationId = requestId(request);
   try {
     deleteSession(getDatabase(), readSessionToken(request));
-    return Response.json({ ok: true }, {
-      headers: {
-        "Cache-Control": "no-store",
-        "X-Request-Id": correlationId,
-        "Set-Cookie": buildClearSessionCookie(request),
-      },
+
+    const headers = new Headers({
+      "Cache-Control": "no-store",
+      "X-Request-Id": correlationId,
     });
+    for (const cookie of buildClearSessionCookies(request)) {
+      headers.append("Set-Cookie", cookie);
+    }
+
+    return Response.json({ ok: true }, { headers });
   } catch (error) {
     if (!(error instanceof Error && error.name === "ApiError")) {
       console.error(`[api] request=${correlationId} auth logout failed`);

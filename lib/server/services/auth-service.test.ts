@@ -6,11 +6,13 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createDatabase } from "@/lib/server/db";
 import {
   buildClearSessionCookie,
+  buildClearSessionCookies,
   buildSessionCookie,
   createSession,
   createUser,
   deleteSession,
   getSessionUser,
+  readSessionToken,
   updateUserProfile,
   verifyCredentials,
 } from "./auth-service";
@@ -92,24 +94,44 @@ describe("auth service (SQLite)", () => {
 });
 
 describe("session cookie attributes", () => {
-  it("uses SameSite=None + Secure + Partitioned on https (cross-site iframe preview)", () => {
+  it("uses a __Host- CHIPS cookie on https (cross-site iframe preview)", () => {
     const request = new Request("http://localhost:3000/api/auth/login", {
       headers: { "x-forwarded-proto": "https" },
     });
     const cookie = buildSessionCookie(request, "tok");
-    expect(cookie).toContain("SameSite=None");
-    expect(cookie).toContain("Secure");
-    expect(cookie).toContain("Partitioned");
-    expect(cookie).toContain("HttpOnly");
-    expect(buildClearSessionCookie(request)).toContain("SameSite=None");
+    expect(cookie).toMatch(
+      /^__Host-kaizen_session=tok; Path=\/; HttpOnly; SameSite=None; Secure; Partitioned/,
+    );
+
+    const clearCookies = buildClearSessionCookies(request);
+    expect(clearCookies).toHaveLength(3);
+    expect(clearCookies[0]).toMatch(/^__Host-kaizen_session=;/);
+    expect(clearCookies[0]).toContain("Partitioned");
+    expect(buildClearSessionCookie(request)).toBe(clearCookies[0]);
   });
 
-  it("falls back to SameSite=Lax without Secure on plain http (local dev)", () => {
+  it("falls back to the legacy SameSite=Lax cookie on plain http (local dev)", () => {
     const request = new Request("http://localhost:3000/api/auth/login");
     const cookie = buildSessionCookie(request, "tok");
-    expect(cookie).toContain("SameSite=Lax");
+    expect(cookie).toMatch(/^kaizen_session=tok; Path=\/; HttpOnly; SameSite=Lax/);
+    expect(cookie).not.toContain("__Host-");
     expect(cookie).not.toContain("Secure");
     expect(cookie).not.toContain("Partitioned");
+    expect(buildClearSessionCookies(request)).toHaveLength(1);
+  });
+
+  it("prefers the partitioned cookie while accepting the legacy cookie", () => {
+    const both = new Request("https://localhost:3000/api/auth/me", {
+      headers: {
+        cookie: "kaizen_session=legacy-token; __Host-kaizen_session=partitioned-token",
+      },
+    });
+    expect(readSessionToken(both)).toBe("partitioned-token");
+
+    const legacyOnly = new Request("http://localhost:3000/api/auth/me", {
+      headers: { cookie: "kaizen_session=legacy-token" },
+    });
+    expect(readSessionToken(legacyOnly)).toBe("legacy-token");
   });
 });
 

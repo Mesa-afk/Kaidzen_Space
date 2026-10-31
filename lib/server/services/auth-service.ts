@@ -12,6 +12,7 @@ import { ApiError } from "@/lib/server/validation/errors";
  */
 
 export const SESSION_COOKIE_NAME = "kaizen_session";
+export const PARTITIONED_SESSION_COOKIE_NAME = "__Host-kaizen_session";
 export const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 export type PublicUser = {
@@ -166,23 +167,45 @@ export function deleteSession(db: DatabaseSync, token: string | undefined): void
 
 /* ---------------- HTTP: cookie и текущий пользователь ---------------- */
 
+function decodeCookieValue(value: string): string | undefined {
+  if (!value) return undefined;
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 export function readSessionToken(request: Request): string | undefined {
   const cookieHeader = request.headers.get("cookie");
   if (!cookieHeader) return undefined;
+
+  const values = new Map<string, string>();
   for (const part of cookieHeader.split(";")) {
-    const [name, ...valueParts] = part.trim().split("=");
-    if (name === SESSION_COOKIE_NAME) {
-      const value = valueParts.join("=").trim();
-      return value ? decodeURIComponent(value) : undefined;
+    const [rawName, ...valueParts] = part.trim().split("=");
+    const name = rawName?.trim();
+    if (name === SESSION_COOKIE_NAME || name === PARTITIONED_SESSION_COOKIE_NAME) {
+      const value = decodeCookieValue(valueParts.join("=").trim());
+      if (value) values.set(name, value);
     }
   }
-  return undefined;
+
+  // HTTPS/CHIPS-cookie имеет приоритет; legacy-имя оставлено для http и
+  // плавной миграции уже выданных браузеру сессий.
+  return values.get(PARTITIONED_SESSION_COOKIE_NAME) ?? values.get(SESSION_COOKIE_NAME);
 }
 
 function isSecureRequest(request: Request): boolean {
   const proto = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
   if (proto) return proto === "https";
   return request.url.startsWith("https://");
+}
+
+function sessionCookieName(request: Request): string {
+  // CHIPS требует префикс __Host- у Partitioned-cookie (вместе с Secure,
+  // Path=/ и без Domain), иначе браузер отклоняет cookie целиком. Префикс
+  // допустим только с Secure, поэтому на plain http остаётся legacy-имя.
+  return isSecureRequest(request) ? PARTITIONED_SESSION_COOKIE_NAME : SESSION_COOKIE_NAME;
 }
 
 function sessionCookieAttributes(request: Request): string[] {
@@ -198,7 +221,7 @@ function sessionCookieAttributes(request: Request): string[] {
 
 export function buildSessionCookie(request: Request, token: string): string {
   return [
-    `${SESSION_COOKIE_NAME}=${encodeURIComponent(token)}`,
+    `${sessionCookieName(request)}=${encodeURIComponent(token)}`,
     "Path=/",
     "HttpOnly",
     ...sessionCookieAttributes(request),
@@ -206,14 +229,27 @@ export function buildSessionCookie(request: Request, token: string): string {
   ].join("; ");
 }
 
-export function buildClearSessionCookie(request: Request): string {
+function buildClearCookie(name: string, attributes: string[]): string {
+  return [`${name}=`, "Path=/", "HttpOnly", ...attributes, "Max-Age=0"].join("; ");
+}
+
+export function buildClearSessionCookies(request: Request): string[] {
+  if (!isSecureRequest(request)) {
+    return [buildClearCookie(SESSION_COOKIE_NAME, ["SameSite=Lax"])];
+  }
+
+  // На https чистим актуальную CHIPS-cookie и обе legacy-разновидности:
+  // обычную Secure-cookie прежних версий и ошибочную Partitioned без
+  // __Host- (если конкретный браузер всё же успел её сохранить).
   return [
-    `${SESSION_COOKIE_NAME}=`,
-    "Path=/",
-    "HttpOnly",
-    ...sessionCookieAttributes(request),
-    "Max-Age=0",
-  ].join("; ");
+    buildClearCookie(PARTITIONED_SESSION_COOKIE_NAME, ["SameSite=None", "Secure", "Partitioned"]),
+    buildClearCookie(SESSION_COOKIE_NAME, ["SameSite=None", "Secure", "Partitioned"]),
+    buildClearCookie(SESSION_COOKIE_NAME, ["SameSite=Lax", "Secure"]),
+  ];
+}
+
+export function buildClearSessionCookie(request: Request): string {
+  return buildClearSessionCookies(request)[0] ?? "";
 }
 
 export function requireUser(request: Request, db: DatabaseSync = getDatabase()): PublicUser {
