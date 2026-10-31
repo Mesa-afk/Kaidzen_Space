@@ -16,9 +16,12 @@
   `timingSafeEqual`; для неизвестного email сравнивается dummy-хэш,
   чтобы ответ не выдавал существование аккаунта.
 - **Сессии**: токен 32 байта (base64url); в БД хранится только его
-  SHA-256. TTL 30 дней. Cookie `kaizen_session`: HttpOnly,
-  SameSite=Lax, Path=/, Secure при https (приоритет у
-  `x-forwarded-proto`, иначе протокол `request.url`).
+  SHA-256. TTL 30 дней. Cookie `kaizen_session`: HttpOnly, Path=/;
+  протокол определяется по `x-forwarded-proto`, иначе по `request.url`.
+  На https — `SameSite=None; Secure; Partitioned` (CHIPS), иначе
+  браузеры отклоняют куку, когда сайт встроен в iframe чужого домена
+  (превью песочницы arena.ai → sbx-*.arena.site); на http (локально) —
+  `SameSite=Lax`, т.к. None без Secure запрещён.
 - **Rate-limit**: `lib/server/auth-rate-limit.ts` (in-memory) —
   10 неудачных входов / 15 мин на пару IP+email; 5 регистраций / час на IP.
 - **Сервис**: `lib/server/services/auth-service.ts` (тесты —

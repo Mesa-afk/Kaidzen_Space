@@ -5,6 +5,8 @@ import type { DatabaseSync } from "node:sqlite";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createDatabase } from "@/lib/server/db";
 import {
+  buildClearSessionCookie,
+  buildSessionCookie,
   createSession,
   createUser,
   deleteSession,
@@ -86,6 +88,28 @@ describe("auth service (SQLite)", () => {
     const cleared = updateUserProfile(db, user.id, { avatarDataUrl: null });
     expect(cleared.avatarDataUrl).toBeNull();
     expect(cleared.name).toBe("Анна");
+  });
+});
+
+describe("session cookie attributes", () => {
+  it("uses SameSite=None + Secure + Partitioned on https (cross-site iframe preview)", () => {
+    const request = new Request("http://localhost:3000/api/auth/login", {
+      headers: { "x-forwarded-proto": "https" },
+    });
+    const cookie = buildSessionCookie(request, "tok");
+    expect(cookie).toContain("SameSite=None");
+    expect(cookie).toContain("Secure");
+    expect(cookie).toContain("Partitioned");
+    expect(cookie).toContain("HttpOnly");
+    expect(buildClearSessionCookie(request)).toContain("SameSite=None");
+  });
+
+  it("falls back to SameSite=Lax without Secure on plain http (local dev)", () => {
+    const request = new Request("http://localhost:3000/api/auth/login");
+    const cookie = buildSessionCookie(request, "tok");
+    expect(cookie).toContain("SameSite=Lax");
+    expect(cookie).not.toContain("Secure");
+    expect(cookie).not.toContain("Partitioned");
   });
 });
 

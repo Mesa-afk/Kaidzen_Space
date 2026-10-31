@@ -185,28 +185,35 @@ function isSecureRequest(request: Request): boolean {
   return request.url.startsWith("https://");
 }
 
+function sessionCookieAttributes(request: Request): string[] {
+  // Приложение может открываться в iframe на чужом домене (превью песочницы:
+  // arena.ai -> sbx-*.arena.site) — браузеры отклоняют там SameSite=Lax.
+  // На https используем SameSite=None + Secure + Partitioned (CHIPS):
+  // работает и в межсайтовом iframe, и в обычной вкладке. На http
+  // (локальная разработка) None без Secure запрещён — остаёмся на Lax.
+  return isSecureRequest(request)
+    ? ["SameSite=None", "Secure", "Partitioned"]
+    : ["SameSite=Lax"];
+}
+
 export function buildSessionCookie(request: Request, token: string): string {
-  const parts = [
+  return [
     `${SESSION_COOKIE_NAME}=${encodeURIComponent(token)}`,
     "Path=/",
     "HttpOnly",
-    "SameSite=Lax",
+    ...sessionCookieAttributes(request),
     `Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}`,
-  ];
-  if (isSecureRequest(request)) parts.push("Secure");
-  return parts.join("; ");
+  ].join("; ");
 }
 
 export function buildClearSessionCookie(request: Request): string {
-  const parts = [
+  return [
     `${SESSION_COOKIE_NAME}=`,
     "Path=/",
     "HttpOnly",
-    "SameSite=Lax",
+    ...sessionCookieAttributes(request),
     "Max-Age=0",
-  ];
-  if (isSecureRequest(request)) parts.push("Secure");
-  return parts.join("; ");
+  ].join("; ");
 }
 
 export function requireUser(request: Request, db: DatabaseSync = getDatabase()): PublicUser {
